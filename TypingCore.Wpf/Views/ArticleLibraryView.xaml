@@ -376,6 +376,7 @@
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
                                     <DockPanel>
@@ -418,6 +419,13 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
+
+                                    <Button Grid.Row="3"
+                                            Margin="0,14,0,0"
+                                            HorizontalAlignment="Left"
+                                            Command="{Binding StartPracticeCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            Content="开始练习" />
                                 </Grid>
                             </Grid>
                         </Border>

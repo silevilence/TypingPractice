@@ -35,6 +35,7 @@ public partial class App : Application
 		string connectionString = $"Data Source={Path.Combine(appDataDirectory, "typing-practice.db")}";
 		IArticleRepository articleRepository = new SqliteArticleRepository(connectionString);
 		IArticleImportService articleImportService = new ArticleImportService();
+		IArticleTextLayoutBuilder articleTextLayoutBuilder = new ArticleTextLayoutBuilder();
 		IFileDialogService fileDialogService = new FileDialogService();
 		IClipboardService clipboardService = new ClipboardService();
 		ISystemClock systemClock = new SystemClock();
@@ -46,7 +47,7 @@ public partial class App : Application
 			clipboardService,
 			systemClock);
 		SettingsViewModel settings = new();
-		MainViewModel mainViewModel = new(articleLibrary, settings);
+		MainViewModel mainViewModel = new(articleLibrary, settings, articleTextLayoutBuilder, systemClock);
 
 		return new MainWindow(mainViewModel);
 	}

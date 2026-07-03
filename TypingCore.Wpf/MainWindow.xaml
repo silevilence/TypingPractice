@@ -20,6 +20,9 @@
         <DataTemplate DataType="{x:Type viewModels:SettingsViewModel}">
             <views:SettingsView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:TypingPracticeViewModel}">
+            <views:TypingPracticeView />
+        </DataTemplate>
 
         <!-- 书本图标（文章库） -->
         <Geometry x:Key="BookIcon">M3 5 C3 4 4 3 5 3 L11 3 C12 3 13 4 13 5 L13 19 C13 20 12 21 11 21 L5 21 C4 21 3 20 3 19 Z M13 5 C13 4 14 3 15 3 L19 3 C20 3 21 4 21 5 L21 19 C21 20 20 21 19 21 L13 21</Geometry>
@@ -154,7 +157,7 @@
                                    FontWeight="SemiBold"
                                    Foreground="#8B5E3C" />
                         <TextBlock Margin="0,8,0,0"
-                                   Text="文章导入、列表筛选和设置框架已就绪，后续键盘与 IME 事件会直接挂到这个骨架上。"
+                                   Text="文章管理、练习输入和设置页都挂在同一个窗口壳里，练习页会直接接收键盘与输入法上屏。"
                                    TextWrapping="Wrap"
                                    Foreground="#7A7067"
                                    FontSize="12"
@@ -186,7 +189,7 @@
                                FontWeight="Bold"
                                Foreground="#2D2926" />
                     <TextBlock Margin="0,6,0,0"
-                               Text="MVVM 导航壳统一管理文章库与设置页"
+                               Text="文章、练习与设置会在这里切换显示"
                                Foreground="#7A7067"
                                FontSize="13" />
                 </StackPanel>

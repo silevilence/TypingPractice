@@ -50,6 +50,8 @@ public sealed class ArticleLibraryViewModel : PageViewModel
         ClearFiltersCommand = new AsyncRelayCommand(ClearFiltersAsync, () => !IsBusy);
     }
 
+    public event Action<IArticleRecord>? PracticeRequested;
+
     public ObservableCollection<ArticleCardViewModel> Articles { get; }
 
     public ObservableCollection<string> AvailableTags { get; }
@@ -247,8 +249,15 @@ public sealed class ArticleLibraryViewModel : PageViewModel
                 article.Title,
                 BuildPreview(article.RawText),
                 article.CreatedAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm"),
-                article.Tags.ToArray()));
+                article.Tags.ToArray(),
+                new RelayCommand(() => OpenPractice(article))));
         }
+    }
+
+    private void OpenPractice(IArticleRecord article)
+    {
+        PracticeRequested?.Invoke(article);
+        StatusMessage = $"已打开《{article.Title}》的练习页。";
     }
 
     private async Task ExecuteBusyAsync(Func<Task> operation)
