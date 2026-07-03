@@ -9,6 +9,20 @@ namespace TypingCore.Abstractions;
 public interface IArticleRepository
 {
     /// <summary>
+    /// Saves an article record.
+    /// </summary>
+    /// <param name="articleRecord">The article record to persist.</param>
+    /// <param name="cancellationToken">The cancellation token for the operation.</param>
+    Task SaveAsync(IArticleRecord articleRecord, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes an article by its identifier.
+    /// </summary>
+    /// <param name="articleId">The unique article identifier.</param>
+    /// <param name="cancellationToken">The cancellation token for the operation.</param>
+    Task DeleteAsync(string articleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a single article by its identifier.
     /// </summary>
     /// <param name="articleId">The unique article identifier.</param>

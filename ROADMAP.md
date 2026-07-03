@@ -4,24 +4,6 @@
 
 ## 🚧 开发中
 
-- [ ] **阶段三：SQLite 数据持久化层（Core 库内）**
-    - [ ] 引入 `Microsoft.Data.Sqlite`（纯 .NET，无平台依赖）
-    - [ ] 设计数据库表结构
-        - [ ] `articles` 表
-        - [ ] `sessions` 表
-        - [ ] `keystrokes` 表（或按需汇总，避免海量明细影响性能）
-        - [ ] `codetables` 表
-    - [ ] 实现 `SqliteArticleRepository`（实现 `IArticleRepository`）
-        - [ ] 增删改查文章
-        - [ ] 按标题/标签搜索
-    - [ ] 实现 `SqliteSessionRepository`（实现 `ISessionRepository`）
-        - [ ] 保存单次练习记录与统计结果
-        - [ ] 按文章查询历史记录列表
-        - [ ] 按时间范围查询统计趋势数据
-    - [ ] 数据库初始化与迁移逻辑
-        - [ ] 首次启动自动建表
-        - [ ] 版本号管理，为后续字段升级预留迁移脚本机制
-
 - [ ] **阶段四：文章导入与解析模块**
     - [ ] 实现 TXT 文件导入
         - [ ] 编码自动识别（UTF-8/GBK 等）
@@ -179,3 +161,21 @@
     - [x] 定义码表数据模型
         - [x] `CodeTableEntry`：编码、候选字/词列表、优先级
         - [x] `CodeTable`：码表名称、来源、加载时间
+
+- [x] **阶段三：SQLite 数据持久化层（Core 库内）**
+    - [x] 引入 `Microsoft.Data.Sqlite`（纯 .NET，无平台依赖）
+    - [x] 设计数据库表结构
+        - [x] `articles` 表
+        - [x] `sessions` 表
+        - [x] `keystrokes` 表（或按需汇总，避免海量明细影响性能）
+        - [x] `codetables` 表
+    - [x] 实现 `SqliteArticleRepository`（实现 `IArticleRepository`）
+        - [x] 增删改查文章
+        - [x] 按标题/标签搜索
+    - [x] 实现 `SqliteSessionRepository`（实现 `ISessionRepository`）
+        - [x] 保存单次练习记录与统计结果
+        - [x] 按文章查询历史记录列表
+        - [x] 按时间范围查询统计趋势数据
+    - [x] 数据库初始化与迁移逻辑
+        - [x] 首次启动自动建表
+        - [x] 版本号管理，为后续字段升级预留迁移脚本机制

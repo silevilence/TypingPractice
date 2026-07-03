@@ -17,11 +17,13 @@ public sealed record TypingSessionRecord : ISessionRecord
     /// <param name="articleId">The related article identifier.</param>
     /// <param name="startedAt">The session start timestamp.</param>
     /// <param name="endedAt">The session end timestamp.</param>
+    /// <param name="statistics">The persisted statistics snapshot, if any.</param>
     public TypingSessionRecord(
         string sessionId,
         string articleId,
         DateTimeOffset startedAt,
-        DateTimeOffset? endedAt)
+        DateTimeOffset? endedAt,
+        IStatisticsSnapshot? statistics = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
         ArgumentException.ThrowIfNullOrWhiteSpace(articleId);
@@ -30,6 +32,7 @@ public sealed record TypingSessionRecord : ISessionRecord
         ArticleId = articleId;
         StartedAt = startedAt;
         EndedAt = endedAt;
+        Statistics = statistics;
     }
 
     /// <inheritdoc />
@@ -43,4 +46,7 @@ public sealed record TypingSessionRecord : ISessionRecord
 
     /// <inheritdoc />
     public DateTimeOffset? EndedAt { get; }
+
+    /// <inheritdoc />
+    public IStatisticsSnapshot? Statistics { get; }
 }

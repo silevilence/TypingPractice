@@ -27,4 +27,9 @@ public interface ISessionRecord
     /// Gets the session end timestamp, if the session has finished.
     /// </summary>
     DateTimeOffset? EndedAt { get; }
+
+    /// <summary>
+    /// Gets the persisted statistics snapshot, if one has been recorded.
+    /// </summary>
+    IStatisticsSnapshot? Statistics { get; }
 }
