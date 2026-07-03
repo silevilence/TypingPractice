@@ -4,43 +4,6 @@
 
 ## 🚧 开发中
 
-- [x] **阶段一：项目初始化与架构搭建**
-    - [x] 使用 dotnet CLI 创建解决方案结构
-        - [x] `dotnet new sln -n TypingPractice`
-        - [x] `dotnet new classlib -n TypingCore -f net8.0`
-        - [x] `dotnet new wpf -n TypingCore.Wpf -f net8.0`
-        - [x] `dotnet new xunit -n TypingCore.Tests -f net8.0`
-        - [x] 将三个项目 add 到 sln，配置 Wpf 与 Tests 项目引用 Core 项目
-    - [x] 配置项目文件属性
-        - [x] TypingCore 设置 `<TargetFramework>net8.0</TargetFramework>`（不引用任何 Windows 专属包）
-        - [x] TypingCore.Wpf 设置 `<TargetFramework>net8.0-windows</TargetFramework>` 并启用 `UseWPF`
-        - [x] 统一 nullable 引用类型、隐式 using 等编码规范
-    - [x] 建立 Core 库内部目录结构
-        - [x] `Models/`（数据模型）
-        - [x] `Parsing/`（文章与码表解析）
-        - [x] `Engine/`（打字比对与统计引擎）
-        - [x] `Persistence/`（数据访问层）
-        - [x] `Abstractions/`（跨平台接口定义，为 Android 预留）
-    - [x] 设计并定义跨平台核心接口（提前预留多平台扩展点）
-        - [x] `IKeyInputEvent`：标准化按键事件（Key、Timestamp、IsFromIME、ImeCommitText、IsBackspace 等）
-        - [x] `ITypingSession`：打字会话接口（输入事件、当前状态、比对结果）
-        - [x] `IStatisticsProvider`：统计指标输出接口
-        - [x] `ICodeTableProvider`：码表反查接口
-        - [x] `IArticleRepository` / `ISessionRepository`：数据持久化接口（面向接口编程，具体实现在 Persistence 层）
-
-- [ ] **阶段二：数据模型与内部格式设计**
-    - [ ] 定义文章内部数据模型
-        - [ ] `Article`：Id、标题、原始文本、创建时间、标签
-        - [ ] `ArticleChar`：单字模型（字符、索引、是否为标点/空格、宽度类型标记）
-        - [ ] 文章分字算法（考虑中英文混排、全角半角、换行处理）
-    - [ ] 定义打字会话与统计数据模型
-        - [ ] `TypingSession`：会话 Id、关联文章 Id、开始/结束时间
-        - [ ] `KeystrokeRecord`：单次按键记录（时间戳、键值、是否上屏、是否退格）
-        - [ ] `SessionStatistics`：键速（KPM）、字速（CPM/WPM）、平均码长、退格次数、错误率、总耗时
-    - [ ] 定义码表数据模型
-        - [ ] `CodeTableEntry`：编码、候选字/词列表、优先级
-        - [ ] `CodeTable`：码表名称、来源、加载时间
-
 - [ ] **阶段三：SQLite 数据持久化层（Core 库内）**
     - [ ] 引入 `Microsoft.Data.Sqlite`（纯 .NET，无平台依赖）
     - [ ] 设计数据库表结构
@@ -179,3 +142,40 @@
     - [ ] 编写用户使用说明文档（下载安装、更新机制说明）
 
 ## ✅ 已完成
+
+- [x] **阶段一：项目初始化与架构搭建**
+    - [x] 使用 dotnet CLI 创建解决方案结构
+        - [x] `dotnet new sln -n TypingPractice`
+        - [x] `dotnet new classlib -n TypingCore -f net8.0`
+        - [x] `dotnet new wpf -n TypingCore.Wpf -f net8.0`
+        - [x] `dotnet new xunit -n TypingCore.Tests -f net8.0`
+        - [x] 将三个项目 add 到 sln，配置 Wpf 与 Tests 项目引用 Core 项目
+    - [x] 配置项目文件属性
+        - [x] TypingCore 设置 `<TargetFramework>net8.0</TargetFramework>`（不引用任何 Windows 专属包）
+        - [x] TypingCore.Wpf 设置 `<TargetFramework>net8.0-windows</TargetFramework>` 并启用 `UseWPF`
+        - [x] 统一 nullable 引用类型、隐式 using 等编码规范
+    - [x] 建立 Core 库内部目录结构
+        - [x] `Models/`（数据模型）
+        - [x] `Parsing/`（文章与码表解析）
+        - [x] `Engine/`（打字比对与统计引擎）
+        - [x] `Persistence/`（数据访问层）
+        - [x] `Abstractions/`（跨平台接口定义，为 Android 预留）
+    - [x] 设计并定义跨平台核心接口（提前预留多平台扩展点）
+        - [x] `IKeyInputEvent`：标准化按键事件（Key、Timestamp、IsFromIME、ImeCommitText、IsBackspace 等）
+        - [x] `ITypingSession`：打字会话接口（输入事件、当前状态、比对结果）
+        - [x] `IStatisticsProvider`：统计指标输出接口
+        - [x] `ICodeTableProvider`：码表反查接口
+        - [x] `IArticleRepository` / `ISessionRepository`：数据持久化接口（面向接口编程，具体实现在 Persistence 层）
+
+- [x] **阶段二：数据模型与内部格式设计**
+    - [x] 定义文章内部数据模型
+        - [x] `Article`：Id、标题、原始文本、创建时间、标签
+        - [x] `ArticleChar`：单字模型（字符、索引、是否为标点/空格、宽度类型标记）
+        - [x] 文章分字算法（考虑中英文混排、全角半角、换行处理）
+    - [x] 定义打字会话与统计数据模型
+        - [x] `TypingSession`：会话 Id、关联文章 Id、开始/结束时间
+        - [x] `KeystrokeRecord`：单次按键记录（时间戳、键值、是否上屏、是否退格）
+        - [x] `SessionStatistics`：键速（KPM）、字速（CPM/WPM）、平均码长、退格次数、错误率、总耗时
+    - [x] 定义码表数据模型
+        - [x] `CodeTableEntry`：编码、候选字/词列表、优先级
+        - [x] `CodeTable`：码表名称、来源、加载时间

@@ -19,6 +19,11 @@ public interface IStatisticsSnapshot
     double CharactersPerMinute { get; }
 
     /// <summary>
+    /// Gets the current words per minute value.
+    /// </summary>
+    double WordsPerMinute { get; }
+
+    /// <summary>
     /// Gets the current average code length.
     /// </summary>
     double AverageCodeLength { get; }
