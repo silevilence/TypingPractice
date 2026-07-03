@@ -27,4 +27,9 @@ public interface ITypingSessionSnapshot
     /// Gets the number of committed characters currently marked as incorrect.
     /// </summary>
     int ErrorCharacterCount { get; }
+
+    /// <summary>
+    /// Gets the per-character comparison results for the target text.
+    /// </summary>
+    IReadOnlyList<TypingCharacterSnapshot> Characters { get; }
 }
