@@ -3,10 +3,152 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TypingCore.Wpf"
+        xmlns:viewModels="clr-namespace:TypingCore.Wpf.ViewModels"
+        xmlns:views="clr-namespace:TypingCore.Wpf.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="打字练习"
+        Width="1280"
+        Height="820"
+        MinWidth="1080"
+        MinHeight="720"
+        Background="#F4F1E8"
+        Loaded="Window_Loaded">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type viewModels:ArticleLibraryViewModel}">
+            <views:ArticleLibraryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
 
+        <Style x:Key="NavigationButtonBase" TargetType="Button">
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Background" Value="#00000000" />
+            <Setter Property="Foreground" Value="#4C443C" />
+            <Setter Property="BorderBrush" Value="#00000000" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="14" Background="{TemplateBinding Background}">
+                            <ContentPresenter Margin="0" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ArticleNavigationButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource NavigationButtonBase}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsArticleLibrarySelected}" Value="True">
+                    <Setter Property="Background" Value="#D0613A" />
+                    <Setter Property="Foreground" Value="#FFF9F1" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SettingsNavigationButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource NavigationButtonBase}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSettingsSelected}" Value="True">
+                    <Setter Property="Background" Value="#D0613A" />
+                    <Setter Property="Foreground" Value="#FFF9F1" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Background="#E9E1D4" Padding="24" CornerRadius="0,24,24,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="打字练习"
+                               FontSize="28"
+                               FontWeight="Bold"
+                               Foreground="#2E2A24" />
+                    <TextBlock Margin="0,10,0,0"
+                               Text="阶段七先建立稳定的窗口骨架，文章库和设置页都挂在统一导航下。"
+                               TextWrapping="Wrap"
+                               Foreground="#5F554B"
+                               FontSize="14"
+                               LineHeight="20" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="0,32,0,0">
+                    <Button Content="文章库"
+                            Command="{Binding ShowArticleLibraryCommand}"
+                            Style="{StaticResource ArticleNavigationButtonStyle}" />
+                    <Button Content="设置"
+                            Command="{Binding ShowSettingsCommand}"
+                            Style="{StaticResource SettingsNavigationButtonStyle}" />
+                </StackPanel>
+
+                <Border Grid.Row="3"
+                        Padding="18"
+                        Background="#F8F3EA"
+                        CornerRadius="18">
+                    <StackPanel>
+                        <TextBlock Text="当前阶段"
+                                   FontWeight="SemiBold"
+                                   Foreground="#4C443C" />
+                        <TextBlock Margin="0,8,0,0"
+                                   Text="先把文章导入、列表筛选和设置框架跑通，后续键盘与 IME 事件会直接挂到这个骨架上。"
+                                   TextWrapping="Wrap"
+                                   Foreground="#6A6158"
+                                   FontSize="13"
+                                   LineHeight="20" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1" Margin="28">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Background="#FCFAF5" CornerRadius="28" Padding="28,24">
+                <DockPanel LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="{Binding CurrentPage.DisplayName}"
+                                   FontSize="30"
+                                   FontWeight="Bold"
+                                   Foreground="#2D2A26" />
+                        <TextBlock Margin="0,8,0,0"
+                                   Text="MVVM 导航壳、文章库检索和设置页结构已经统一放到主窗口内容区。"
+                                   Foreground="#6B6258"
+                                   FontSize="14" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Row="1"
+                    Margin="0,20,0,0"
+                    Padding="24"
+                    Background="#FCFAF5"
+                    CornerRadius="28">
+                <ContentControl Content="{Binding CurrentPage}" />
+            </Border>
+        </Grid>
     </Grid>
 </Window>

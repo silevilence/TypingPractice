@@ -1,5 +1,11 @@
-﻿using System.Text;
+﻿using System.IO;
+using System.Text;
 using System.Windows;
+using TypingCore.Abstractions;
+using TypingCore.Parsing;
+using TypingCore.Persistence;
+using TypingCore.Wpf.Services;
+using TypingCore.Wpf.ViewModels;
 
 namespace TypingCore.Wpf;
 
@@ -13,6 +19,36 @@ public partial class App : Application
 	{
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 		base.OnStartup(e);
+
+		MainWindow window = BuildMainWindow();
+		MainWindow = window;
+		window.Show();
+	}
+
+	private static MainWindow BuildMainWindow()
+	{
+		string appDataDirectory = Path.Combine(
+			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+			"TypingPractice");
+		Directory.CreateDirectory(appDataDirectory);
+
+		string connectionString = $"Data Source={Path.Combine(appDataDirectory, "typing-practice.db")}";
+		IArticleRepository articleRepository = new SqliteArticleRepository(connectionString);
+		IArticleImportService articleImportService = new ArticleImportService();
+		IFileDialogService fileDialogService = new FileDialogService();
+		IClipboardService clipboardService = new ClipboardService();
+		ISystemClock systemClock = new SystemClock();
+
+		ArticleLibraryViewModel articleLibrary = new(
+			articleRepository,
+			articleImportService,
+			fileDialogService,
+			clipboardService,
+			systemClock);
+		SettingsViewModel settings = new();
+		MainViewModel mainViewModel = new(articleLibrary, settings);
+
+		return new MainWindow(mainViewModel);
 	}
 }
 
