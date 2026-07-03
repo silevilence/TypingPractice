@@ -14,14 +14,55 @@
             <Setter Property="Margin" Value="0,0,0,16" />
         </Style>
 
+        <!-- 下拉箭头图标 -->
+        <Geometry x:Key="ChevronDownIcon">M6 9 L12 15 L18 9</Geometry>
+
         <Style x:Key="SettingsComboBoxStyle" TargetType="ComboBox">
             <Setter Property="Height" Value="40" />
-            <Setter Property="Padding" Value="12,0" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Foreground" Value="#2D2926" />
             <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="BorderBrush" Value="#E8E2DA" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Border x:Name="ComboBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <Grid>
+                                <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
+                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                  Margin="12,0,36,0"
+                                                  HorizontalAlignment="Left"
+                                                  VerticalAlignment="Center" />
+                                <Path Width="16" Height="16"
+                                      Margin="0,0,12,0"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Center"
+                                      Stretch="Uniform"
+                                      Stroke="#8B5E3C"
+                                      StrokeThickness="1.5"
+                                      StrokeEndLineCap="Round"
+                                      StrokeStartLineCap="Round"
+                                      Data="{StaticResource ChevronDownIcon}" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#8B5E3C" />
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#8B5E3C" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
