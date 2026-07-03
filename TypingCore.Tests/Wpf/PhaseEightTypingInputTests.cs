@@ -12,6 +12,7 @@ public sealed class PhaseEightTypingInputTests
     private const int WmImeChar = 0x0286;
     private const int VkA = 0x41;
     private const int VkBackspace = 0x08;
+    private const int VkEnter = 0x0D;
     private const int VkEscape = 0x1B;
     private const int VkLeftArrow = 0x25;
 
@@ -108,6 +109,58 @@ public sealed class PhaseEightTypingInputTests
         Assert.Equal(string.Empty, viewModel.CommittedText);
         Assert.Equal(0, viewModel.CurrentTextIndex);
         Assert.Contains("重新开始", viewModel.StatusMessage);
+    }
+
+    [Fact]
+    public void TypingPracticeViewModel_prompts_for_enter_at_line_break_and_advances_to_next_line()
+    {
+        MutableSystemClock clock = new(new DateTimeOffset(2026, 7, 3, 14, 0, 0, TimeSpan.Zero));
+        TypingPracticeViewModel viewModel = CreatePracticeViewModel("甲\n乙", clock);
+
+        bool handledFirstCharacter = viewModel.HandleTextInput("甲");
+
+        Assert.True(handledFirstCharacter);
+        Assert.Equal(1, viewModel.CurrentTextIndex);
+        Assert.Contains("Enter", viewModel.StatusMessage);
+
+        clock.Advance(TimeSpan.FromMilliseconds(5));
+        bool handledLineBreak = viewModel.HandleTextInput("\n");
+
+        Assert.True(handledLineBreak);
+        Assert.Equal(2, viewModel.CurrentTextIndex);
+        Assert.DoesNotContain("Enter", viewModel.StatusMessage);
+    }
+
+    [Fact]
+    public void TypingPracticeViewModel_routes_enter_preview_key_into_line_break_commit()
+    {
+        MutableSystemClock clock = new(new DateTimeOffset(2026, 7, 3, 14, 15, 0, TimeSpan.Zero));
+        TypingPracticeViewModel viewModel = CreatePracticeViewModel("甲\n乙", clock);
+
+        viewModel.HandleTextInput("甲");
+        clock.Advance(TimeSpan.FromMilliseconds(5));
+
+        bool handledPreviewKey = viewModel.HandlePreviewKeyDown(VkEnter);
+
+        Assert.True(handledPreviewKey);
+        Assert.Equal(2, viewModel.CurrentTextIndex);
+        Assert.Contains("下一行", viewModel.StatusMessage);
+    }
+
+    [Fact]
+    public void TypingPracticeViewModel_routes_backspace_preview_key_into_session()
+    {
+        MutableSystemClock clock = new(new DateTimeOffset(2026, 7, 3, 14, 30, 0, TimeSpan.Zero));
+        TypingPracticeViewModel viewModel = CreatePracticeViewModel("ab", clock);
+
+        viewModel.HandleTextInput("a");
+        clock.Advance(TimeSpan.FromMilliseconds(5));
+
+        bool handledPreviewKey = viewModel.HandlePreviewKeyDown(VkBackspace);
+
+        Assert.True(handledPreviewKey);
+        Assert.Equal(0, viewModel.CurrentTextIndex);
+        Assert.Equal(string.Empty, viewModel.CommittedText);
     }
 
     private static ArticleLibraryViewModel CreateArticleLibraryViewModel(

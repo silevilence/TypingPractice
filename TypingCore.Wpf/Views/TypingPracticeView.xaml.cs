@@ -28,6 +28,8 @@ public partial class TypingPracticeView : UserControl
             return;
         }
 
+        hostWindow.PreviewKeyDown -= HostWindow_PreviewKeyDown;
+        hostWindow.PreviewKeyDown += HostWindow_PreviewKeyDown;
         hostWindow.PreviewTextInput -= HostWindow_PreviewTextInput;
         hostWindow.PreviewTextInput += HostWindow_PreviewTextInput;
 
@@ -42,6 +44,7 @@ public partial class TypingPracticeView : UserControl
     {
         if (hostWindow is not null)
         {
+            hostWindow.PreviewKeyDown -= HostWindow_PreviewKeyDown;
             hostWindow.PreviewTextInput -= HostWindow_PreviewTextInput;
         }
 
@@ -62,9 +65,33 @@ public partial class TypingPracticeView : UserControl
         FocusInputSurface();
     }
 
+    private void HostWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (DataContext is not TypingPracticeViewModel viewModel)
+        {
+            return;
+        }
+
+        Key key = e.Key == Key.System ? e.SystemKey : e.Key;
+        int virtualKey = KeyInterop.VirtualKeyFromKey(key);
+        bool consumed = viewModel.HandlePreviewKeyDown(virtualKey);
+        if (!consumed)
+        {
+            return;
+        }
+
+        e.Handled = ShouldHandlePreviewKey(key, viewModel);
+        FocusInputSurface();
+    }
+
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (DataContext is not TypingPracticeViewModel viewModel)
+        {
+            return IntPtr.Zero;
+        }
+
+        if (msg == WindowMessageInputTranslator.WmKeyDown)
         {
             return IntPtr.Zero;
         }
@@ -84,9 +111,9 @@ public partial class TypingPracticeView : UserControl
 
     private void FocusInputSurface()
     {
-        if (InputSurface.IsVisible)
+        if (ImeInputSink.IsVisible)
         {
-            Keyboard.Focus(InputSurface);
+            Keyboard.Focus(ImeInputSink);
         }
     }
 
@@ -99,5 +126,15 @@ public partial class TypingPracticeView : UserControl
 
         int virtualKey = unchecked((int)wParam);
         return virtualKey is 0x08 or 0x1B or 0x25 or 0x26 or 0x27 or 0x28;
+    }
+
+    private static bool ShouldHandlePreviewKey(Key key, TypingPracticeViewModel viewModel)
+    {
+        if (key == Key.Enter)
+        {
+            return true;
+        }
+
+        return key is Key.Escape or Key.Left or Key.Right or Key.Up or Key.Down;
     }
 }

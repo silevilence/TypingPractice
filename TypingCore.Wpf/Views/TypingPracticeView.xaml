@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:TypingCore.Wpf.Views"
              mc:Ignorable="d"
              d:DesignHeight="600"
              d:DesignWidth="900"
@@ -89,17 +90,17 @@
         </Style>
     </UserControl.Resources>
 
-    <Border x:Name="InputSurface"
+        <Border x:Name="InputSurface"
             Background="Transparent"
-            Focusable="True"
+            Cursor="IBeam"
+            Focusable="False"
             PreviewMouseLeftButtonDown="InputSurface_PreviewMouseLeftButtonDown">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Border Style="{StaticResource PanelBorderStyle}">
@@ -191,39 +192,63 @@
                 </Border>
             </Grid>
 
-            <Border Grid.Row="2" Margin="0,2,0,0" Style="{StaticResource PanelBorderStyle}">
-                <StackPanel>
-                    <TextBlock Text="原文"
+            <Border Grid.Row="2" Margin="0,16,0,0" Style="{StaticResource PanelBorderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="逐字对齐练习区"
                                FontSize="15"
                                FontWeight="SemiBold"
                                Foreground="#2D2926" />
-                    <TextBlock Margin="0,10,0,0"
-                               Text="{Binding TargetText}"
-                               Foreground="#4C443C"
-                               FontSize="18"
+                    <TextBlock Grid.Row="1"
+                               Margin="0,10,0,0"
+                               Text="上行显示原文，下行显示已上屏内容；当前字符会高亮，错误输入直接标红。"
+                               Foreground="#7A7067"
+                               FontSize="13"
                                TextWrapping="Wrap"
-                               LineHeight="30" />
-                </StackPanel>
+                               LineHeight="22" />
+                    <Grid Grid.Row="2" Margin="0,14,0,0">
+                        <ScrollViewer x:Name="PracticeScrollViewer"
+                                      Focusable="False"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      CanContentScroll="False"
+                                      VerticalAlignment="Stretch">
+                            <views:InterleavedTypingRenderControl MinHeight="220"
+                                                                  HorizontalAlignment="Stretch"
+                                                                  VerticalAlignment="Top"
+                                                                  ArticleLayout="{Binding ArticleLayout}"
+                                                                  CharacterSnapshots="{Binding CharacterSnapshots}"
+                                                                  CurrentTextIndex="{Binding CurrentTextIndex}"
+                                                                  FontSize="18" />
+                        </ScrollViewer>
+                        <TextBox x:Name="ImeInputSink"
+                                 Width="1"
+                                 Height="1"
+                                 Margin="8,8,0,0"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Top"
+                                 IsHitTestVisible="False"
+                                 Opacity="0"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 CaretBrush="Transparent"
+                                 FocusVisualStyle="{x:Null}"
+                                 Foreground="Transparent"
+                                 IsUndoEnabled="False"
+                                 InputMethod.IsInputMethodEnabled="True"
+                                 InputMethod.PreferredImeState="On" />
+                    </Grid>
+                </Grid>
             </Border>
 
             <Border Grid.Row="3" Margin="0,16,0,0" Style="{StaticResource PanelBorderStyle}">
-                <StackPanel>
-                    <TextBlock Text="已上屏内容"
-                               FontSize="15"
-                               FontWeight="SemiBold"
-                               Foreground="#2D2926" />
-                    <TextBlock Margin="0,10,0,0"
-                               MinHeight="60"
-                               Text="{Binding CommittedText}"
-                               Foreground="#8B5E3C"
-                               FontSize="20"
-                               FontWeight="SemiBold"
-                               TextWrapping="Wrap"
-                               LineHeight="30" />
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="4" Margin="0,16,0,0" Style="{StaticResource PanelBorderStyle}">
                 <StackPanel>
                     <TextBlock Text="输入说明"
                                FontSize="15"

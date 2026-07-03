@@ -16,6 +16,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
     private readonly WindowMessageInputTranslator inputTranslator;
     private readonly Action returnToLibrary;
     private readonly ITypingSession session;
+    private IReadOnlyList<TypingCharacterSnapshot> characterSnapshots = [];
     private string committedText = string.Empty;
     private int correctCharacterCount;
     private int currentTextIndex;
@@ -39,9 +40,9 @@ public sealed class TypingPracticeViewModel : PageViewModel
 
         ArticleTitle = article.Title;
 
-        ArticleTextLayout layout = articleTextLayoutBuilder.Build(article.RawText);
-        TargetText = layout.NormalizedText;
-        session = new TypingSession(layout);
+    ArticleLayout = articleTextLayoutBuilder.Build(article.RawText);
+    TargetText = ArticleLayout.NormalizedText;
+    session = new TypingSession(ArticleLayout);
         inputTranslator = new WindowMessageInputTranslator(systemClock);
         statusMessage = "已进入练习页，直接开始输入即可。Esc 重练，方向键暂时只显示提示。";
 
@@ -53,7 +54,15 @@ public sealed class TypingPracticeViewModel : PageViewModel
 
     public string ArticleTitle { get; }
 
+    public ArticleTextLayout ArticleLayout { get; }
+
     public string TargetText { get; }
+
+    public IReadOnlyList<TypingCharacterSnapshot> CharacterSnapshots
+    {
+        get => characterSnapshots;
+        private set => SetProperty(ref characterSnapshots, value);
+    }
 
     public string CommittedText
     {
@@ -117,6 +126,18 @@ public sealed class TypingPracticeViewModel : PageViewModel
         return inputEvent is not null && HandleNormalizedInput(inputEvent);
     }
 
+    public bool HandlePreviewKeyDown(int virtualKey)
+    {
+        if (virtualKey == 0x0D)
+        {
+            return IsAwaitingLineBreakInput()
+                ? HandleTextInput("\n")
+                : false;
+        }
+
+        return HandleWindowMessage(WindowMessageInputTranslator.WmKeyDown, (nint)virtualKey);
+    }
+
     public bool HandleTextInput(string text)
     {
         IKeyInputEvent? inputEvent = inputTranslator.TranslateTextInput(text);
@@ -141,6 +162,12 @@ public sealed class TypingPracticeViewModel : PageViewModel
         session.ProcessInput(inputEvent);
         RefreshSessionState();
 
+        if (IsAwaitingLineBreakInput())
+        {
+            StatusMessage = "当前行已完成，按 Enter 进入下一行。";
+            return true;
+        }
+
         if (inputEvent.IsBackspace)
         {
             StatusMessage = CurrentTextIndex == 0
@@ -153,6 +180,8 @@ public sealed class TypingPracticeViewModel : PageViewModel
         {
             StatusMessage = IsCompleted
                 ? $"《{ArticleTitle}》已完成，按 Esc 可以重新开始。"
+                : string.Equals(inputEvent.ImeCommitText, "\n", StringComparison.Ordinal)
+                    ? "已进入下一行，继续输入即可。"
                 : inputEvent.IsFromIme
                     ? "已接收输入法上屏内容。"
                     : "已接收当前输入。";
@@ -160,6 +189,13 @@ public sealed class TypingPracticeViewModel : PageViewModel
 
         return inputEvent.Key != KeyInputKey.Unknown || !string.IsNullOrEmpty(inputEvent.ImeCommitText);
     }
+
+    private bool IsAwaitingLineBreakInput()
+        => !IsCompleted
+            && CurrentTextIndex >= 0
+            && CurrentTextIndex < CharacterSnapshots.Count
+            && CharacterSnapshots[CurrentTextIndex].TargetChar == '\n'
+            && CharacterSnapshots[CurrentTextIndex].State == TypingCharacterState.Current;
 
     private void Restart()
     {
@@ -172,6 +208,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
     private void RefreshSessionState()
     {
         ITypingSessionSnapshot snapshot = session.Snapshot;
+        CharacterSnapshots = snapshot.Characters;
         SessionState = snapshot.State;
         CurrentTextIndex = snapshot.CurrentTextIndex;
         CorrectCharacterCount = snapshot.CorrectCharacterCount;
