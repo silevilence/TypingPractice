@@ -18,6 +18,7 @@ public sealed record SessionStatistics : IStatisticsSnapshot
     /// <param name="wordsPerMinute">The words per minute.</param>
     /// <param name="averageCodeLength">The average code length.</param>
     /// <param name="backspaceCount">The backspace count.</param>
+    /// <param name="backspaceRate">The backspace rate.</param>
     /// <param name="errorRate">The error rate.</param>
     /// <param name="elapsed">The elapsed duration.</param>
     public SessionStatistics(
@@ -26,6 +27,7 @@ public sealed record SessionStatistics : IStatisticsSnapshot
         double wordsPerMinute,
         double averageCodeLength,
         int backspaceCount,
+        double backspaceRate,
         double errorRate,
         TimeSpan elapsed)
     {
@@ -34,6 +36,7 @@ public sealed record SessionStatistics : IStatisticsSnapshot
         WordsPerMinute = wordsPerMinute;
         AverageCodeLength = averageCodeLength;
         BackspaceCount = backspaceCount;
+        BackspaceRate = backspaceRate;
         ErrorRate = errorRate;
         Elapsed = elapsed;
     }
@@ -52,6 +55,9 @@ public sealed record SessionStatistics : IStatisticsSnapshot
 
     /// <inheritdoc />
     public int BackspaceCount { get; }
+
+    /// <inheritdoc />
+    public double BackspaceRate { get; }
 
     /// <inheritdoc />
     public double ErrorRate { get; }

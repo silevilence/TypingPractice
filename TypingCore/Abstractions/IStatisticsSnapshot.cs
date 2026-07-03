@@ -34,6 +34,11 @@ public interface IStatisticsSnapshot
     int BackspaceCount { get; }
 
     /// <summary>
+    /// Gets the current backspace rate, expressed as a value between 0 and 1.
+    /// </summary>
+    double BackspaceRate { get; }
+
+    /// <summary>
     /// Gets the current error rate, expressed as a value between 0 and 1.
     /// </summary>
     double ErrorRate { get; }

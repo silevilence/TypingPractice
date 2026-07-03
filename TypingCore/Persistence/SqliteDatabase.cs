@@ -5,7 +5,7 @@ namespace TypingCore.Persistence;
 
 internal sealed class SqliteDatabase
 {
-    private const int CurrentSchemaVersion = 1;
+    private const int CurrentSchemaVersion = 2;
 
     private readonly string connectionString;
 
@@ -61,6 +61,11 @@ internal sealed class SqliteDatabase
             if (version < 1)
             {
                 await ApplyVersion1Async(connection, transaction, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (version < 2)
+            {
+                await ApplyVersion2Async(connection, transaction, cancellationToken).ConfigureAwait(false);
             }
 
             await SetUserVersionAsync(connection, transaction, CurrentSchemaVersion, cancellationToken)
@@ -156,6 +161,18 @@ internal sealed class SqliteDatabase
                 entries_json TEXT NOT NULL
             );
             """;
+
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task ApplyVersion2Async(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        await using SqliteCommand command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "ALTER TABLE sessions ADD COLUMN backspace_rate REAL NULL;";
 
         await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }

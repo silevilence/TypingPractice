@@ -11,8 +11,13 @@ namespace TypingCore.Engine;
 /// </remarks>
 public sealed class TypingSession : ITypingSession
 {
+    private static readonly TimeSpan SlidingWindowDuration = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan MinimumRateDuration = TimeSpan.FromSeconds(1);
+
     private readonly ArticleTextLayout layout;
     private readonly List<CommittedCharacter> committedCharacters = new();
+    private readonly List<DateTimeOffset> committedCharacterTimestamps = new();
+    private readonly Queue<DateTimeOffset> rawKeyWindowTimestamps = new();
     private readonly SessionStatisticsProvider statisticsProvider;
     private TypingSessionState state;
     private ITypingSessionSnapshot snapshot;
@@ -74,6 +79,7 @@ public sealed class TypingSession : ITypingSession
         if (!hasCommitText)
         {
             totalRawKeyCount++;
+            TrackRawKeyTimestamp(inputEvent.Timestamp);
         }
 
         if (isBackspace)
@@ -98,6 +104,8 @@ public sealed class TypingSession : ITypingSession
     public void Reset()
     {
         committedCharacters.Clear();
+        committedCharacterTimestamps.Clear();
+        rawKeyWindowTimestamps.Clear();
         totalRawKeyCount = 0;
         committedBackspaceCount = 0;
         pendingCompositionKeyCount = 0;
@@ -121,6 +129,7 @@ public sealed class TypingSession : ITypingSession
         }
 
         committedCharacters.RemoveAt(committedCharacters.Count - 1);
+        committedCharacterTimestamps.RemoveAt(committedCharacterTimestamps.Count - 1);
         committedBackspaceCount++;
         state = TypingSessionState.Running;
     }
@@ -139,6 +148,7 @@ public sealed class TypingSession : ITypingSession
             int textIndex = committedCharacters.Count;
             char targetChar = layout.NormalizedText[textIndex];
             committedCharacters.Add(new CommittedCharacter(textIndex, inputChar, inputChar == targetChar));
+            committedCharacterTimestamps.Add(lastInputTimestamp ?? DateTimeOffset.MinValue);
         }
 
         if (committedCharacters.Count >= layout.NormalizedText.Length && layout.NormalizedText.Length > 0)
@@ -196,9 +206,8 @@ public sealed class TypingSession : ITypingSession
         int committedCharacterCount = committedCharacters.Count;
         int errorCount = committedCharacters.Count(character => !character.IsCorrect);
         TimeSpan elapsed = GetElapsed();
-        double elapsedMinutes = elapsed.TotalMinutes;
-        double keystrokesPerMinute = elapsedMinutes > 0 ? totalRawKeyCount / elapsedMinutes : 0;
-        double charactersPerMinute = elapsedMinutes > 0 ? committedCharacterCount / elapsedMinutes : 0;
+        double keystrokesPerMinute = GetKeystrokesPerMinute(elapsed);
+        double charactersPerMinute = GetCharactersPerMinute(committedCharacterCount, elapsed);
 
         return new SessionStatistics(
             keystrokesPerMinute,
@@ -206,8 +215,107 @@ public sealed class TypingSession : ITypingSession
             charactersPerMinute / 5d,
             committedCharacterCount > 0 ? (double)totalRawKeyCount / committedCharacterCount : 0,
             committedBackspaceCount,
+            totalRawKeyCount > 0 ? (double)committedBackspaceCount / totalRawKeyCount : 0,
             layout.NormalizedText.Length > 0 ? (double)errorCount / layout.NormalizedText.Length : 0,
             elapsed);
+    }
+
+    private double GetKeystrokesPerMinute(TimeSpan elapsed)
+    {
+        if (!lastInputTimestamp.HasValue)
+        {
+            return 0;
+        }
+
+        if (state == TypingSessionState.Completed)
+        {
+            return CalculateRate(totalRawKeyCount, elapsed);
+        }
+
+        TrimRawKeyWindow(lastInputTimestamp.Value);
+        return CalculateRate(
+            rawKeyWindowTimestamps.Count,
+            GetRunningWindowDuration(lastInputTimestamp.Value));
+    }
+
+    private double GetCharactersPerMinute(int committedCharacterCount, TimeSpan elapsed)
+    {
+        if (!lastInputTimestamp.HasValue)
+        {
+            return 0;
+        }
+
+        if (state == TypingSessionState.Completed)
+        {
+            return CalculateRate(committedCharacterCount, elapsed);
+        }
+
+        DateTimeOffset windowStart = GetWindowStart(lastInputTimestamp.Value);
+        return CalculateRate(
+            CountCommittedCharactersInWindow(windowStart),
+            GetRunningWindowDuration(lastInputTimestamp.Value));
+    }
+
+    private void TrackRawKeyTimestamp(DateTimeOffset timestamp)
+    {
+        rawKeyWindowTimestamps.Enqueue(timestamp);
+        TrimRawKeyWindow(timestamp);
+    }
+
+    private void TrimRawKeyWindow(DateTimeOffset currentTimestamp)
+    {
+        DateTimeOffset windowStart = GetWindowStart(currentTimestamp);
+
+        while (rawKeyWindowTimestamps.Count > 0 && rawKeyWindowTimestamps.Peek() < windowStart)
+        {
+            rawKeyWindowTimestamps.Dequeue();
+        }
+    }
+
+    private int CountCommittedCharactersInWindow(DateTimeOffset windowStart)
+    {
+        int count = 0;
+
+        for (int index = committedCharacterTimestamps.Count - 1; index >= 0; index--)
+        {
+            if (committedCharacterTimestamps[index] < windowStart)
+            {
+                break;
+            }
+
+            count++;
+        }
+
+        return count;
+    }
+
+    private TimeSpan GetRunningWindowDuration(DateTimeOffset currentTimestamp)
+    {
+        TimeSpan duration = currentTimestamp - GetWindowStart(currentTimestamp);
+
+        if (duration <= TimeSpan.Zero)
+        {
+            return TimeSpan.Zero;
+        }
+
+        return duration < MinimumRateDuration ? MinimumRateDuration : duration;
+    }
+
+    private DateTimeOffset GetWindowStart(DateTimeOffset currentTimestamp)
+    {
+        DateTimeOffset windowStart = currentTimestamp - SlidingWindowDuration;
+
+        if (firstInputTimestamp.HasValue && windowStart < firstInputTimestamp.Value)
+        {
+            return firstInputTimestamp.Value;
+        }
+
+        return windowStart;
+    }
+
+    private static double CalculateRate(int count, TimeSpan duration)
+    {
+        return duration.TotalMinutes > 0 ? count / duration.TotalMinutes : 0;
     }
 
     private TimeSpan GetElapsed()

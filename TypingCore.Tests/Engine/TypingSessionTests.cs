@@ -83,6 +83,13 @@ public class TypingSessionTests
         Assert.Equal(0, completed.ErrorCharacterCount);
         Assert.Equal(TypingCharacterState.Correct, completed.Characters[1].State);
         Assert.Equal('b', completed.Characters[1].InputChar);
+
+        IStatisticsSnapshot statistics = session.StatisticsProvider.Current;
+
+        Assert.Equal(2d, statistics.AverageCodeLength);
+        Assert.Equal(1, statistics.BackspaceCount);
+        Assert.Equal(0.25d, statistics.BackspaceRate);
+        Assert.Equal(0d, statistics.ErrorRate);
     }
 
     [Fact]
@@ -115,5 +122,38 @@ public class TypingSessionTests
         Assert.Equal(TypingCharacterState.Correct, completed.Characters[0].State);
         Assert.Equal('你', completed.Characters[0].InputChar);
         Assert.Equal(0, session.StatisticsProvider.Current.BackspaceCount);
+    }
+
+    [Fact]
+    public void StatisticsProvider_uses_sliding_window_while_running_and_total_summary_after_completion()
+    {
+        DateTimeOffset startedAt = new(2026, 7, 3, 11, 30, 0, TimeSpan.Zero);
+        ITypingSession session = new TypingSession(LayoutBuilder.Build("abc"));
+
+        session.ProcessInput(new KeyInputEvent(KeyInputKey.Character, startedAt, false, null, false));
+        session.ProcessInput(new KeyInputEvent(KeyInputKey.Character, startedAt.AddMilliseconds(5), false, "a", false));
+        session.ProcessInput(new KeyInputEvent(KeyInputKey.Character, startedAt.AddSeconds(2), false, null, false));
+        session.ProcessInput(new KeyInputEvent(KeyInputKey.Character, startedAt.AddSeconds(2).AddMilliseconds(5), false, "b", false));
+        session.ProcessInput(new KeyInputEvent(KeyInputKey.Character, startedAt.AddSeconds(12), false, null, false));
+
+        IStatisticsSnapshot running = session.StatisticsProvider.Current;
+
+        Assert.Equal(TypingSessionState.Running, session.Snapshot.State);
+        Assert.Equal(12d, running.KeystrokesPerMinute, 3);
+        Assert.Equal(6d, running.CharactersPerMinute, 3);
+        Assert.Equal(1.2d, running.WordsPerMinute, 3);
+        Assert.Equal(1.5d, running.AverageCodeLength, 3);
+
+        session.ProcessInput(new KeyInputEvent(KeyInputKey.Character, startedAt.AddSeconds(12).AddMilliseconds(5), false, "c", false));
+
+        IStatisticsSnapshot completed = session.StatisticsProvider.Current;
+        double expectedSummaryRate = 3d / TimeSpan.FromSeconds(12.005).TotalMinutes;
+
+        Assert.Equal(TypingSessionState.Completed, session.Snapshot.State);
+        Assert.Equal(expectedSummaryRate, completed.KeystrokesPerMinute, 3);
+        Assert.Equal(expectedSummaryRate, completed.CharactersPerMinute, 3);
+        Assert.Equal(expectedSummaryRate / 5d, completed.WordsPerMinute, 3);
+        Assert.Equal(1d, completed.AverageCodeLength);
+        Assert.Equal(TimeSpan.FromSeconds(12.005), completed.Elapsed);
     }
 }

@@ -85,6 +85,7 @@ public sealed class SqliteRepositoryTests : IDisposable
             53,
             4.3,
             2,
+            0.05,
             0.03,
             TimeSpan.FromMinutes(2));
 
@@ -108,6 +109,7 @@ public sealed class SqliteRepositoryTests : IDisposable
         Assert.Equal("session-1", byArticle.SessionId);
         Assert.NotNull(byArticle.Statistics);
         Assert.Equal(318, byArticle.Statistics!.KeystrokesPerMinute);
+        Assert.Equal(0.05, byArticle.Statistics.BackspaceRate);
         Assert.Equal(TimeSpan.FromMinutes(2), byArticle.Statistics.Elapsed);
         Assert.Null(withoutStatistics.Statistics);
 
@@ -139,16 +141,50 @@ public sealed class SqliteRepositoryTests : IDisposable
         await repository.SearchAsync();
 
         HashSet<string> tableNames = await ReadUserTableNamesAsync();
+        HashSet<string> sessionColumns = await ReadTableColumnNamesAsync("sessions");
 
         Assert.Contains("articles", tableNames);
         Assert.Contains("sessions", tableNames);
         Assert.Contains("keystrokes", tableNames);
         Assert.Contains("codetables", tableNames);
-        Assert.Equal(1, await ReadSchemaVersionAsync());
+        Assert.Contains("backspace_rate", sessionColumns);
+        Assert.Equal(2, await ReadSchemaVersionAsync());
 
         await repository.SearchAsync();
 
-        Assert.Equal(1, await ReadSchemaVersionAsync());
+        Assert.Equal(2, await ReadSchemaVersionAsync());
+    }
+
+    [Fact]
+    public async Task Session_repository_migrates_version_1_database_to_current_schema()
+    {
+        await InitializeVersion1DatabaseAsync();
+
+        ISessionRepository repository = new SqliteSessionRepository(ConnectionString);
+        DateTimeOffset startedAt = new(2026, 7, 3, 13, 0, 0, TimeSpan.Zero);
+        SessionStatistics statistics = new(
+            300,
+            240,
+            48,
+            4,
+            1,
+            0.2,
+            0.01,
+            TimeSpan.FromMinutes(1));
+
+        await repository.SaveAsync(new TypingSessionRecord(
+            "session-migrated",
+            "article-legacy",
+            startedAt,
+            startedAt.AddMinutes(1),
+            statistics));
+
+        ISessionRecord migrated = Assert.Single(await repository.GetByArticleIdAsync("article-legacy"));
+
+        Assert.NotNull(migrated.Statistics);
+        Assert.Equal(0.2, migrated.Statistics!.BackspaceRate);
+        Assert.Equal(2, await ReadSchemaVersionAsync());
+        Assert.Contains("backspace_rate", await ReadTableColumnNamesAsync("sessions"));
     }
 
     public void Dispose()
@@ -183,6 +219,25 @@ public sealed class SqliteRepositoryTests : IDisposable
         return tableNames;
     }
 
+    private async Task<HashSet<string>> ReadTableColumnNamesAsync(string tableName)
+    {
+        await using SqliteConnection connection = new(ConnectionString);
+        await connection.OpenAsync();
+
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({tableName});";
+
+        await using SqliteDataReader reader = await command.ExecuteReaderAsync();
+        HashSet<string> columnNames = new(StringComparer.OrdinalIgnoreCase);
+
+        while (await reader.ReadAsync())
+        {
+            columnNames.Add(reader.GetString(reader.GetOrdinal("name")));
+        }
+
+        return columnNames;
+    }
+
     private async Task<int> ReadSchemaVersionAsync()
     {
         await using SqliteConnection connection = new(ConnectionString);
@@ -194,5 +249,32 @@ public sealed class SqliteRepositoryTests : IDisposable
         object? value = await command.ExecuteScalarAsync();
 
         return Convert.ToInt32(value);
+    }
+
+    private async Task InitializeVersion1DatabaseAsync()
+    {
+        await using SqliteConnection connection = new(ConnectionString);
+        await connection.OpenAsync();
+
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "PRAGMA user_version = 1;";
+        await command.ExecuteNonQueryAsync();
+
+        command.CommandText = """
+            CREATE TABLE sessions (
+                session_id TEXT PRIMARY KEY,
+                article_id TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                ended_at TEXT NULL,
+                keystrokes_per_minute REAL NULL,
+                characters_per_minute REAL NULL,
+                words_per_minute REAL NULL,
+                average_code_length REAL NULL,
+                backspace_count INTEGER NULL,
+                error_rate REAL NULL,
+                elapsed_ticks INTEGER NULL
+            );
+            """;
+        await command.ExecuteNonQueryAsync();
     }
 }

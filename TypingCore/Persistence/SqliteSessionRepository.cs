@@ -42,6 +42,7 @@ public sealed class SqliteSessionRepository : ISessionRepository
                 words_per_minute,
                 average_code_length,
                 backspace_count,
+                backspace_rate,
                 error_rate,
                 elapsed_ticks)
             VALUES(
@@ -54,6 +55,7 @@ public sealed class SqliteSessionRepository : ISessionRepository
                 @wordsPerMinute,
                 @averageCodeLength,
                 @backspaceCount,
+                @backspaceRate,
                 @errorRate,
                 @elapsedTicks)
             ON CONFLICT(session_id) DO UPDATE SET
@@ -65,6 +67,7 @@ public sealed class SqliteSessionRepository : ISessionRepository
                 words_per_minute = excluded.words_per_minute,
                 average_code_length = excluded.average_code_length,
                 backspace_count = excluded.backspace_count,
+                backspace_rate = excluded.backspace_rate,
                 error_rate = excluded.error_rate,
                 elapsed_ticks = excluded.elapsed_ticks;
             """;
@@ -91,6 +94,9 @@ public sealed class SqliteSessionRepository : ISessionRepository
         command.Parameters.AddWithValue(
             "@backspaceCount",
             sessionRecord.Statistics is null ? DBNull.Value : sessionRecord.Statistics.BackspaceCount);
+        command.Parameters.AddWithValue(
+            "@backspaceRate",
+            sessionRecord.Statistics is null ? DBNull.Value : sessionRecord.Statistics.BackspaceRate);
         command.Parameters.AddWithValue(
             "@errorRate",
             sessionRecord.Statistics is null ? DBNull.Value : sessionRecord.Statistics.ErrorRate);
@@ -122,6 +128,7 @@ public sealed class SqliteSessionRepository : ISessionRepository
                 words_per_minute,
                 average_code_length,
                 backspace_count,
+                backspace_rate,
                 error_rate,
                 elapsed_ticks
             FROM sessions
@@ -160,6 +167,7 @@ public sealed class SqliteSessionRepository : ISessionRepository
                 words_per_minute,
                 average_code_length,
                 backspace_count,
+                backspace_rate,
                 error_rate,
                 elapsed_ticks
             FROM sessions
@@ -200,6 +208,7 @@ public sealed class SqliteSessionRepository : ISessionRepository
         int wordsPerMinuteOrdinal = reader.GetOrdinal("words_per_minute");
         int averageCodeLengthOrdinal = reader.GetOrdinal("average_code_length");
         int backspaceCountOrdinal = reader.GetOrdinal("backspace_count");
+        int backspaceRateOrdinal = reader.GetOrdinal("backspace_rate");
         int errorRateOrdinal = reader.GetOrdinal("error_rate");
         int elapsedTicksOrdinal = reader.GetOrdinal("elapsed_ticks");
 
@@ -213,6 +222,7 @@ public sealed class SqliteSessionRepository : ISessionRepository
                 reader.GetDouble(wordsPerMinuteOrdinal),
                 reader.GetDouble(averageCodeLengthOrdinal),
                 reader.GetInt32(backspaceCountOrdinal),
+                reader.IsDBNull(backspaceRateOrdinal) ? 0d : reader.GetDouble(backspaceRateOrdinal),
                 reader.GetDouble(errorRateOrdinal),
                 TimeSpan.FromTicks(reader.GetInt64(elapsedTicksOrdinal)));
         }

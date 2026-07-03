@@ -14,6 +14,7 @@ public class SessionStatisticsTests
             52,
             4.1,
             3,
+            0.1,
             0.04,
             TimeSpan.FromSeconds(95));
 
@@ -24,6 +25,7 @@ public class SessionStatisticsTests
         Assert.Equal(52, snapshot.WordsPerMinute);
         Assert.Equal(4.1, snapshot.AverageCodeLength);
         Assert.Equal(3, snapshot.BackspaceCount);
+        Assert.Equal(0.1, snapshot.BackspaceRate);
         Assert.Equal(0.04, snapshot.ErrorRate);
         Assert.Equal(TimeSpan.FromSeconds(95), snapshot.Elapsed);
     }
