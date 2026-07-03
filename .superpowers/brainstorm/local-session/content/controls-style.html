@@ -1,0 +1,62 @@
+<h2>按钮与输入控件风格</h2>
+<p class="subtitle">操作按钮、搜索框、下拉框的统一处理方式</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>圆角胶囊按钮 + 内嵌搜索框</h3>
+      <p>主按钮深棕底白字，圆角 10px，hover 时颜色加深。次按钮只有深棕色描边+文字。搜索框无外边框，底部一条细线分隔，左侧有搜索图标占位。下拉框同样圆角处理。整体柔和、不刺眼。</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>直角按钮 + 传统输入框</h3>
+      <p>按钮方角或极小圆角（2-4px），强调按钮用深色填充，次要按钮灰色底。输入框有完整边框。偏传统桌面软件风格，辨识度高但略显老派。</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>渐变按钮 + 浮动标签输入</h3>
+      <p>主按钮用深棕到浅棕的微妙渐变，有精致的 hover 过渡动画。输入框使用浮动标签模式（label 在聚焦时上移变小）。视觉上最精致，但 WPF 实现成本较高。</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:24px">
+  <h3>关键差异</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:14px">
+    <thead>
+      <tr style="text-align:left;border-bottom:2px solid #e0d8ce">
+        <th style="padding:8px 12px">维度</th>
+        <th style="padding:8px 12px">A. 胶囊按钮+内嵌搜索</th>
+        <th style="padding:8px 12px">B. 直角+传统输入</th>
+        <th style="padding:8px 12px">C. 渐变+浮动标签</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">视觉协调性</td>
+        <td style="padding:8px 12px">★★★★ 与圆角色块导航统一</td>
+        <td style="padding:8px 12px">★★☆☆ 偏方正，与侧边栏风格割裂</td>
+        <td style="padding:8px 12px">★★★★★ 最精致</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">WPF 实现</td>
+        <td style="padding:8px 12px">简单 — ControlTemplate + CornerRadius</td>
+        <td style="padding:8px 12px">最简单 — 原生控件微调</td>
+        <td style="padding:8px 12px">复杂 — 需自定义动画</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">操作舒适度</td>
+        <td style="padding:8px 12px">高 — 圆角柔和，hover 反馈清晰</td>
+        <td style="padding:8px 12px">中 — 方角稍显生硬</td>
+        <td style="padding:8px 12px">高 — 动画精致但可能分散注意力</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

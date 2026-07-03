@@ -11,7 +11,7 @@
         Height="820"
         MinWidth="1080"
         MinHeight="720"
-        Background="#F4F1E8"
+        Background="#FAF8F5"
         Loaded="Window_Loaded">
     <Window.Resources>
         <DataTemplate DataType="{x:Type viewModels:ArticleLibraryViewModel}">
@@ -21,22 +21,50 @@
             <views:SettingsView />
         </DataTemplate>
 
+        <!-- 书本图标（文章库） -->
+        <Geometry x:Key="BookIcon">M3 5 C3 4 4 3 5 3 L11 3 C12 3 13 4 13 5 L13 19 C13 20 12 21 11 21 L5 21 C4 21 3 20 3 19 Z M13 5 C13 4 14 3 15 3 L19 3 C20 3 21 4 21 5 L21 19 C21 20 20 21 19 21 L13 21</Geometry>
+        <!-- 齿轮图标（设置） -->
+        <Geometry x:Key="GearIcon">M12 8 C9.79 8 8 9.79 8 12 C8 14.21 9.79 16 12 16 C14.21 16 16 14.21 16 12 C16 9.79 14.21 8 12 8 Z M19.43 12.98 C19.47 12.66 19.5 12.33 19.5 12 C19.5 11.67 19.47 11.34 19.43 11.02 L21.54 9.37 C21.73 9.22 21.78 8.95 21.66 8.73 L19.66 5.27 C19.54 5.05 19.27 4.96 19.05 5.05 L16.56 6.05 C16.04 5.65 15.48 5.32 14.87 5.07 L14.49 2.4 C14.46 2.17 14.26 2 14.03 2 L10.03 2 C9.79 2 9.59 2.17 9.56 2.4 L9.18 5.07 C8.57 5.32 8.01 5.66 7.49 6.05 L5 5.05 C4.77 4.96 4.5 5.05 4.38 5.27 L2.38 8.73 C2.25 8.95 2.31 9.22 2.5 9.37 L4.61 11.02 C4.57 11.34 4.54 11.67 4.54 12 C4.54 12.33 4.57 12.66 4.61 12.98 L2.5 14.63 C2.31 14.78 2.26 15.05 2.38 15.27 L4.38 18.73 C4.5 18.95 4.77 19.04 5 18.95 L7.49 17.95 C8.01 18.35 8.57 18.68 9.18 18.93 L9.56 21.6 C9.59 21.83 9.79 22 10.03 22 L14.03 22 C14.26 22 14.46 21.83 14.49 21.6 L14.87 18.93 C15.48 18.68 16.04 18.34 16.56 17.95 L19.05 18.95 C19.27 19.04 19.54 18.95 19.66 18.73 L21.66 15.27 C21.78 15.05 21.73 14.78 21.54 14.63 Z</Geometry>
+
+        <!-- 导航按钮基础样式 -->
         <Style x:Key="NavigationButtonBase" TargetType="Button">
-            <Setter Property="Padding" Value="16,12" />
-            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="16,0" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Background" Value="#00000000" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#4C443C" />
-            <Setter Property="BorderBrush" Value="#00000000" />
+            <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border CornerRadius="14" Background="{TemplateBinding Background}">
-                            <ContentPresenter Margin="0" />
+                        <Border x:Name="NavBackground"
+                                CornerRadius="14"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path x:Name="NavIcon"
+                                      Width="20" Height="20"
+                                      Margin="0,0,12,0"
+                                      Stretch="Uniform"
+                                      Stroke="{TemplateBinding Foreground}"
+                                      StrokeThickness="1.5"
+                                      StrokeEndLineCap="Round"
+                                      StrokeStartLineCap="Round"
+                                      Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ContentPresenter ContentSource="Tag" />
+                            </StackPanel>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="NavBackground" Property="Background" Value="#F0E6D6" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -47,8 +75,8 @@
                BasedOn="{StaticResource NavigationButtonBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsArticleLibrarySelected}" Value="True">
-                    <Setter Property="Background" Value="#D0613A" />
-                    <Setter Property="Foreground" Value="#FFF9F1" />
+                    <Setter Property="Background" Value="#8B5E3C" />
+                    <Setter Property="Foreground" Value="#FFFFFF" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -58,8 +86,8 @@
                BasedOn="{StaticResource NavigationButtonBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsSettingsSelected}" Value="True">
-                    <Setter Property="Background" Value="#D0613A" />
-                    <Setter Property="Foreground" Value="#FFF9F1" />
+                    <Setter Property="Background" Value="#8B5E3C" />
+                    <Setter Property="Foreground" Value="#FFFFFF" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -71,7 +99,8 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Border Background="#E9E1D4" Padding="24" CornerRadius="0,24,24,0">
+        <!-- 侧边栏 -->
+        <Border Background="#F3EFEB" Padding="24,28,24,24">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -80,73 +109,102 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
+                <!-- 应用标题 -->
                 <StackPanel>
                     <TextBlock Text="打字练习"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2E2A24" />
-                    <TextBlock Margin="0,10,0,0"
-                               Text="阶段七先建立稳定的窗口骨架，文章库和设置页都挂在统一导航下。"
-                               TextWrapping="Wrap"
-                               Foreground="#5F554B"
-                               FontSize="14"
-                               LineHeight="20" />
+                               Foreground="#2D2926" />
+                    <Border Margin="0,12,0,0"
+                            Width="36" Height="3"
+                            Background="#8B5E3C"
+                            CornerRadius="1.5" />
+                    <TextBlock Margin="0,14,0,0"
+                               Text="沉静练习，逐字精进"
+                               Foreground="#7A7067"
+                               FontSize="13" />
                 </StackPanel>
 
+                <!-- 导航项 -->
                 <StackPanel Grid.Row="1" Margin="0,32,0,0">
-                    <Button Content="文章库"
-                            Command="{Binding ShowArticleLibraryCommand}"
-                            Style="{StaticResource ArticleNavigationButtonStyle}" />
-                    <Button Content="设置"
-                            Command="{Binding ShowSettingsCommand}"
-                            Style="{StaticResource SettingsNavigationButtonStyle}" />
+                    <Button Command="{Binding ShowArticleLibraryCommand}"
+                            Style="{StaticResource ArticleNavigationButtonStyle}">
+                        <Button.Content>
+                            <StaticResource ResourceKey="BookIcon" />
+                        </Button.Content>
+                        <Button.Tag>文章库</Button.Tag>
+                    </Button>
+                    <Button Command="{Binding ShowSettingsCommand}"
+                            Style="{StaticResource SettingsNavigationButtonStyle}">
+                        <Button.Content>
+                            <StaticResource ResourceKey="GearIcon" />
+                        </Button.Content>
+                        <Button.Tag>设置</Button.Tag>
+                    </Button>
                 </StackPanel>
 
+                <!-- 底部说明卡片 -->
                 <Border Grid.Row="3"
                         Padding="18"
                         Background="#F8F3EA"
-                        CornerRadius="18">
+                        CornerRadius="14">
                     <StackPanel>
                         <TextBlock Text="当前阶段"
+                                   FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="#4C443C" />
+                                   Foreground="#8B5E3C" />
                         <TextBlock Margin="0,8,0,0"
-                                   Text="先把文章导入、列表筛选和设置框架跑通，后续键盘与 IME 事件会直接挂到这个骨架上。"
+                                   Text="文章导入、列表筛选和设置框架已就绪，后续键盘与 IME 事件会直接挂到这个骨架上。"
                                    TextWrapping="Wrap"
-                                   Foreground="#6A6158"
-                                   FontSize="13"
-                                   LineHeight="20" />
+                                   Foreground="#7A7067"
+                                   FontSize="12"
+                                   LineHeight="18" />
                     </StackPanel>
                 </Border>
             </Grid>
         </Border>
 
+        <!-- 主内容区 -->
         <Grid Grid.Column="1" Margin="28">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Border Background="#FCFAF5" CornerRadius="28" Padding="28,24">
-                <DockPanel LastChildFill="False">
-                    <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="{Binding CurrentPage.DisplayName}"
-                                   FontSize="30"
-                                   FontWeight="Bold"
-                                   Foreground="#2D2A26" />
-                        <TextBlock Margin="0,8,0,0"
-                                   Text="MVVM 导航壳、文章库检索和设置页结构已经统一放到主窗口内容区。"
-                                   Foreground="#6B6258"
-                                   FontSize="14" />
-                    </StackPanel>
-                </DockPanel>
+            <!-- 顶部标题栏 -->
+            <Border Background="#FFFFFF" CornerRadius="16" Padding="28,20">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000"
+                                      BlurRadius="16"
+                                      ShadowDepth="2"
+                                      Opacity="0.06"
+                                      Direction="270" />
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="{Binding CurrentPage.DisplayName}"
+                               FontSize="28"
+                               FontWeight="Bold"
+                               Foreground="#2D2926" />
+                    <TextBlock Margin="0,6,0,0"
+                               Text="MVVM 导航壳统一管理文章库与设置页"
+                               Foreground="#7A7067"
+                               FontSize="13" />
+                </StackPanel>
             </Border>
 
+            <!-- 内容容器 -->
             <Border Grid.Row="1"
-                    Margin="0,20,0,0"
+                    Margin="0,18,0,0"
                     Padding="24"
-                    Background="#FCFAF5"
-                    CornerRadius="28">
+                    Background="#FFFFFF"
+                    CornerRadius="16">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000"
+                                      BlurRadius="16"
+                                      ShadowDepth="2"
+                                      Opacity="0.06"
+                                      Direction="270" />
+                </Border.Effect>
                 <ContentControl Content="{Binding CurrentPage}" />
             </Border>
         </Grid>

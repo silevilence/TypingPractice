@@ -1,0 +1,62 @@
+<h2>侧边栏导航的视觉处理</h2>
+<p class="subtitle">新中式纸韵风格下，侧边栏有几种不同的处理方式</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>左侧竖线指示器 + 文字按钮</h3>
+      <p>导航项选中时，左侧显示一条深棕色竖线（3px 宽），文字变深色加粗。未选中项为灰色文字。底部保留说明卡片，用更淡的背景。整体简洁克制，参考 Notion 侧边栏。</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>圆角色块背景 + 图标文字</h3>
+      <p>选中项用深棕色圆角色块做背景，白色文字。每个导航项左侧加一个 SVG 图标（如书本、齿轮）。未选中项无背景色。更有现代感，参考 Linear 侧边栏。</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>下划线 + 图标</h3>
+      <p>选中项下方显示深棕色下划线，文字变深色。未选中项为浅灰色文字+灰色图标。类似顶部标签栏的处理方式，但放在侧边栏。视觉上偏经典。</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:24px">
+  <h3>关键差异</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:14px">
+    <thead>
+      <tr style="text-align:left;border-bottom:2px solid #e0d8ce">
+        <th style="padding:8px 12px">维度</th>
+        <th style="padding:8px 12px">A. 竖线指示器</th>
+        <th style="padding:8px 12px">B. 圆角色块+图标</th>
+        <th style="padding:8px 12px">C. 下划线+图标</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">实现复杂度</td>
+        <td style="padding:8px 12px">低 — 只需改样式</td>
+        <td style="padding:8px 12px">中 — 需引入图标库</td>
+        <td style="padding:8px 12px">低 — 改样式即可</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">视觉精致度</td>
+        <td style="padding:8px 12px">★★★☆ 克制优雅</td>
+        <td style="padding:8px 12px">★★★★ 现代精致</td>
+        <td style="padding:8px 12px">★★☆☆ 偏常规</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">与纸韵风格匹配</td>
+        <td style="padding:8px 12px">高 — 符合留白美学</td>
+        <td style="padding:8px 12px">中 — 稍偏科技感</td>
+        <td style="padding:8px 12px">中 — 偏通用</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

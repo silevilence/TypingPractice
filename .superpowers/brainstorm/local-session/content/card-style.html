@@ -1,0 +1,62 @@
+<h2>文章卡片的视觉样式</h2>
+<p class="subtitle">文章列表里每篇文章的展示方式，直接影响整体质感</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>纯白卡片 + 微投影 + 左侧装饰条</h3>
+      <p>白色背景，0 2px 12px rgba(0,0,0,0.06) 投影，左侧一条 4px 宽的深棕色装饰条（标示文章类型或状态）。hover 时投影加深。标题粗体，预览文字两行截断，标签在底部用小胶囊。整体精致且有层次。</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>无投影卡片 + 细边框</h3>
+      <p>白色背景，1px solid #E8E2DA 细边框分隔，hover 时边框变深棕。无投影，依赖边框和背景色差异创造层级。更偏扁平、干净。标题粗体，预览文字两行截断。</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>毛玻璃卡片</h3>
+      <p>半透明白背景 + backdrop-filter: blur(12px)，卡片边缘有 1px 的半透明白色描边。投影更深。视觉上更有现代感和深度，但在 WPF 中实现需要自定义 Effect 或 Shader，有一定实现成本。</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:24px">
+  <h3>关键差异</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:14px">
+    <thead>
+      <tr style="text-align:left;border-bottom:2px solid #e0d8ce">
+        <th style="padding:8px 12px">维度</th>
+        <th style="padding:8px 12px">A. 微投影+装饰条</th>
+        <th style="padding:8px 12px">B. 细边框</th>
+        <th style="padding:8px 12px">C. 毛玻璃</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">层次感</td>
+        <td style="padding:8px 12px">★★★★ 投影+装饰条双层营造</td>
+        <td style="padding:8px 12px">★★☆☆ 依赖边框，较平</td>
+        <td style="padding:8px 12px">★★★★★ 最有深度</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">WPF 实现</td>
+        <td style="padding:8px 12px">简单 — DropShadow + Border</td>
+        <td style="padding:8px 12px">最简单 — 纯 Border</td>
+        <td style="padding:8px 12px">复杂 — 需 Shader Effect</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee">
+        <td style="padding:8px 12px;font-weight:600">与纸韵风格匹配</td>
+        <td style="padding:8px 12px">高 — 装饰条可呼应深棕主色</td>
+        <td style="padding:8px 12px">中 — 偏扁平现代</td>
+        <td style="padding:8px 12px">低 — 偏未来感</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
