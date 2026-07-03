@@ -13,23 +13,17 @@ public sealed record ArticleChar
     /// </summary>
     /// <param name="value">The character value.</param>
     /// <param name="index">The zero-based index in normalized text.</param>
-    /// <param name="isPunctuation">A value indicating whether the character is punctuation.</param>
-    /// <param name="isWhitespace">A value indicating whether the character is whitespace other than a line break.</param>
-    /// <param name="isLineBreak">A value indicating whether the character is a normalized line break.</param>
+    /// <param name="characterKind">The semantic character classification.</param>
     /// <param name="widthKind">The display width classification.</param>
     public ArticleChar(
         char value,
         int index,
-        bool isPunctuation,
-        bool isWhitespace,
-        bool isLineBreak,
+        ArticleCharacterKind characterKind,
         CharacterWidthKind widthKind)
     {
         Value = value;
         Index = index;
-        IsPunctuation = isPunctuation;
-        IsWhitespace = isWhitespace;
-        IsLineBreak = isLineBreak;
+        CharacterKind = characterKind;
         WidthKind = widthKind;
     }
 
@@ -46,17 +40,22 @@ public sealed record ArticleChar
     /// <summary>
     /// Gets a value indicating whether the character is punctuation.
     /// </summary>
-    public bool IsPunctuation { get; }
+    public bool IsPunctuation => CharacterKind == ArticleCharacterKind.Punctuation;
 
     /// <summary>
     /// Gets a value indicating whether the character is whitespace other than a line break.
     /// </summary>
-    public bool IsWhitespace { get; }
+    public bool IsWhitespace => CharacterKind == ArticleCharacterKind.Whitespace;
 
     /// <summary>
     /// Gets a value indicating whether the character is a normalized line break.
     /// </summary>
-    public bool IsLineBreak { get; }
+    public bool IsLineBreak => CharacterKind == ArticleCharacterKind.LineBreak;
+
+    /// <summary>
+    /// Gets the semantic character classification.
+    /// </summary>
+    public ArticleCharacterKind CharacterKind { get; }
 
     /// <summary>
     /// Gets the display width classification.

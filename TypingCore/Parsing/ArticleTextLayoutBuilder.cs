@@ -16,9 +16,7 @@ public sealed class ArticleTextLayoutBuilder : IArticleTextLayoutBuilder
     {
         ArgumentNullException.ThrowIfNull(rawText);
 
-        string normalizedText = rawText
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace("\r", "\n", StringComparison.Ordinal);
+        string normalizedText = NormalizeText(rawText);
 
         List<ArticleChar> characters = new(normalizedText.Length);
 
@@ -27,17 +25,54 @@ public sealed class ArticleTextLayoutBuilder : IArticleTextLayoutBuilder
             char value = normalizedText[index];
             bool isLineBreak = value == '\n';
             bool isWhitespace = !isLineBreak && char.IsWhiteSpace(value);
+            bool isPunctuation = IsPunctuation(value);
+            ArticleCharacterKind characterKind = GetCharacterKind(value, isPunctuation, isWhitespace, isLineBreak);
 
             characters.Add(new ArticleChar(
                 value,
                 index,
-                IsPunctuation(value),
-                isWhitespace,
-                isLineBreak,
+                characterKind,
                 GetWidthKind(value)));
         }
 
         return new ArticleTextLayout(normalizedText, characters);
+    }
+
+    private static string NormalizeText(string rawText)
+    {
+        string lineEndingNormalized = rawText
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\r", "\n", StringComparison.Ordinal);
+
+        string[] lines = lineEndingNormalized.Split('\n');
+        List<string> normalizedLines = new(lines.Length);
+        bool previousLineWasBlank = true;
+
+        foreach (string line in lines)
+        {
+            bool isBlankLine = string.IsNullOrWhiteSpace(line);
+
+            if (isBlankLine)
+            {
+                if (!previousLineWasBlank)
+                {
+                    normalizedLines.Add(string.Empty);
+                }
+            }
+            else
+            {
+                normalizedLines.Add(line);
+            }
+
+            previousLineWasBlank = isBlankLine;
+        }
+
+        while (normalizedLines.Count > 0 && normalizedLines[^1].Length == 0)
+        {
+            normalizedLines.RemoveAt(normalizedLines.Count - 1);
+        }
+
+        return string.Join('\n', normalizedLines);
     }
 
     private static bool IsPunctuation(char value)
@@ -53,6 +88,45 @@ public sealed class ArticleTextLayoutBuilder : IArticleTextLayoutBuilder
             or UnicodeCategory.OtherPunctuation;
     }
 
+    private static ArticleCharacterKind GetCharacterKind(
+        char value,
+        bool isPunctuation,
+        bool isWhitespace,
+        bool isLineBreak)
+    {
+        if (isLineBreak)
+        {
+            return ArticleCharacterKind.LineBreak;
+        }
+
+        if (isWhitespace)
+        {
+            return ArticleCharacterKind.Whitespace;
+        }
+
+        if (isPunctuation)
+        {
+            return ArticleCharacterKind.Punctuation;
+        }
+
+        if (char.IsDigit(value))
+        {
+            return ArticleCharacterKind.Digit;
+        }
+
+        if (IsCjkCodePoint(value))
+        {
+            return ArticleCharacterKind.Cjk;
+        }
+
+        if (IsLatinLetter(value))
+        {
+            return ArticleCharacterKind.LatinLetter;
+        }
+
+        return ArticleCharacterKind.Other;
+    }
+
     private static CharacterWidthKind GetWidthKind(char value)
     {
         if (value == '\n' || value == '\t' || value <= '\u007F')
@@ -63,6 +137,22 @@ public sealed class ArticleTextLayoutBuilder : IArticleTextLayoutBuilder
         return IsWideCodePoint(value)
             ? CharacterWidthKind.FullWidth
             : CharacterWidthKind.HalfWidth;
+    }
+
+    private static bool IsLatinLetter(char value)
+    {
+        return value is >= 'A' and <= 'Z'
+            or >= 'a' and <= 'z'
+            or >= '\u00C0' and <= '\u024F'
+            or >= '\uFF21' and <= '\uFF3A'
+            or >= '\uFF41' and <= '\uFF5A';
+    }
+
+    private static bool IsCjkCodePoint(char value)
+    {
+        return value is >= '\u3400' and <= '\u4DBF'
+            or >= '\u4E00' and <= '\u9FFF'
+            or >= '\uF900' and <= '\uFAFF';
     }
 
     private static bool IsWideCodePoint(char value)
