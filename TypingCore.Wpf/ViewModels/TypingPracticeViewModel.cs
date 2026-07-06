@@ -13,15 +13,26 @@ namespace TypingCore.Wpf.ViewModels;
 /// </summary>
 public sealed class TypingPracticeViewModel : PageViewModel
 {
+    private readonly IArticleRecord article;
+    private readonly Action<IArticleRecord, IStatisticsSnapshot, int>? completionCallback;
     private readonly WindowMessageInputTranslator inputTranslator;
     private readonly Action returnToLibrary;
     private readonly ITypingSession session;
+    private readonly ISessionRepository? sessionRepository;
+    private readonly ISystemClock systemClock;
+    private double averageCodeLength;
     private IReadOnlyList<TypingCharacterSnapshot> characterSnapshots = [];
+    private double charactersPerMinute;
     private string committedText = string.Empty;
     private int correctCharacterCount;
+    private int completionVersion;
     private int currentTextIndex;
     private int errorCharacterCount;
+    private bool isCompletionHandled;
     private bool isInterleavedLayout = true;
+    private double keystrokesPerMinute;
+    private string sessionId = Guid.NewGuid().ToString("N");
+    private DateTimeOffset? sessionStartedAt;
     private TypingSessionState sessionState;
     private string statusMessage;
 
@@ -29,7 +40,9 @@ public sealed class TypingPracticeViewModel : PageViewModel
         IArticleRecord article,
         IArticleTextLayoutBuilder articleTextLayoutBuilder,
         ISystemClock systemClock,
-        Action returnToLibrary)
+        Action returnToLibrary,
+        ISessionRepository? sessionRepository = null,
+        Action<IArticleRecord, IStatisticsSnapshot, int>? completionCallback = null)
         : base("开始练习")
     {
         ArgumentNullException.ThrowIfNull(article);
@@ -37,7 +50,11 @@ public sealed class TypingPracticeViewModel : PageViewModel
         ArgumentNullException.ThrowIfNull(systemClock);
         ArgumentNullException.ThrowIfNull(returnToLibrary);
 
+        this.article = article;
+        this.completionCallback = completionCallback;
         this.returnToLibrary = returnToLibrary;
+        this.sessionRepository = sessionRepository;
+        this.systemClock = systemClock;
 
         ArticleTitle = article.Title;
         ArticleLayout = articleTextLayoutBuilder.Build(article.RawText);
@@ -47,7 +64,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
         statusMessage = "已进入练习页，直接开始输入即可。可随时切换逐字对齐或上下跟随布局。";
 
         RestartCommand = new RelayCommand(Restart);
-        ReturnToLibraryCommand = new RelayCommand(() => this.returnToLibrary());
+        ReturnToLibraryCommand = new RelayCommand(ReturnToLibrary);
         SelectInterleavedLayoutCommand = new RelayCommand(() => SelectLayout(true));
         SelectFollowingLayoutCommand = new RelayCommand(() => SelectLayout(false));
 
@@ -96,6 +113,24 @@ public sealed class TypingPracticeViewModel : PageViewModel
         private set => SetProperty(ref errorCharacterCount, value);
     }
 
+    public double KeystrokesPerMinute
+    {
+        get => keystrokesPerMinute;
+        private set => SetProperty(ref keystrokesPerMinute, value);
+    }
+
+    public double CharactersPerMinute
+    {
+        get => charactersPerMinute;
+        private set => SetProperty(ref charactersPerMinute, value);
+    }
+
+    public double AverageCodeLength
+    {
+        get => averageCodeLength;
+        private set => SetProperty(ref averageCodeLength, value);
+    }
+
     public TypingSessionState SessionState
     {
         get => sessionState;
@@ -131,6 +166,8 @@ public sealed class TypingPracticeViewModel : PageViewModel
         get => statusMessage;
         private set => SetProperty(ref statusMessage, value);
     }
+
+    public Task CompletionTask { get; private set; } = Task.CompletedTask;
 
     public IRelayCommand RestartCommand { get; }
 
@@ -179,8 +216,33 @@ public sealed class TypingPracticeViewModel : PageViewModel
                 return true;
         }
 
+        if (session.Snapshot.State == TypingSessionState.NotStarted)
+        {
+            sessionStartedAt = inputEvent.Timestamp;
+        }
+
+        bool wasCompleted = IsCompleted;
         session.ProcessInput(inputEvent);
         RefreshSessionState();
+
+        if (wasCompleted && !IsCompleted)
+        {
+            isCompletionHandled = false;
+            completionVersion++;
+        }
+
+        if (IsCompleted && !isCompletionHandled)
+        {
+            isCompletionHandled = true;
+            int queuedCompletionVersion = ++completionVersion;
+            IStatisticsSnapshot statistics = session.StatisticsProvider.Current;
+            CompletionTask = SaveCompletedSessionAsync(
+                sessionId,
+                sessionStartedAt ?? systemClock.UtcNow,
+                statistics,
+                ErrorCharacterCount,
+                queuedCompletionVersion);
+        }
 
         if (IsAwaitingLineBreakInput())
         {
@@ -221,8 +283,19 @@ public sealed class TypingPracticeViewModel : PageViewModel
     {
         session.Reset();
         inputTranslator.Reset();
+        isCompletionHandled = false;
+        completionVersion++;
+        sessionId = Guid.NewGuid().ToString("N");
+        sessionStartedAt = null;
+        CompletionTask = Task.CompletedTask;
         RefreshSessionState();
         StatusMessage = "已重新开始当前文章。";
+    }
+
+    private void ReturnToLibrary()
+    {
+        completionVersion++;
+        returnToLibrary();
     }
 
     private void SelectLayout(bool useInterleavedLayout)
@@ -241,15 +314,51 @@ public sealed class TypingPracticeViewModel : PageViewModel
     private void RefreshSessionState()
     {
         ITypingSessionSnapshot snapshot = session.Snapshot;
+        IStatisticsSnapshot statistics = session.StatisticsProvider.Current;
         CharacterSnapshots = snapshot.Characters;
         SessionState = snapshot.State;
         CurrentTextIndex = snapshot.CurrentTextIndex;
         CorrectCharacterCount = snapshot.CorrectCharacterCount;
         ErrorCharacterCount = snapshot.ErrorCharacterCount;
+        KeystrokesPerMinute = statistics.KeystrokesPerMinute;
+        CharactersPerMinute = statistics.CharactersPerMinute;
+        AverageCodeLength = statistics.AverageCodeLength;
         CommittedText = new string(snapshot.Characters
             .Take(CurrentTextIndex)
             .Select(character => character.InputChar ?? '\0')
             .Where(character => character != '\0')
             .ToArray());
+    }
+
+    private async Task SaveCompletedSessionAsync(
+        string completedSessionId,
+        DateTimeOffset startedAt,
+        IStatisticsSnapshot statistics,
+        int completedErrorCount,
+        int queuedCompletionVersion)
+    {
+        try
+        {
+            if (sessionRepository is not null)
+            {
+                await sessionRepository.SaveAsync(new TypingSessionRecord(
+                    completedSessionId,
+                    article.ArticleId,
+                    startedAt,
+                    systemClock.UtcNow,
+                    statistics));
+            }
+
+            if (sessionId == completedSessionId
+                && completionVersion == queuedCompletionVersion
+                && IsCompleted)
+            {
+                completionCallback?.Invoke(article, statistics, completedErrorCount);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"练习已完成，但记录保存失败：{ex.Message}";
+        }
     }
 }

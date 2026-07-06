@@ -194,6 +194,8 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -214,18 +216,50 @@
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center">
                         <TextBlock VerticalAlignment="Center"
-                                   Text="正确"
+                                   Text="键速"
                                    FontSize="12"
                                    FontWeight="SemiBold"
                                    Foreground="#8B5E3C" />
                         <TextBlock Margin="14,0,0,0"
-                                   Text="{Binding CorrectCharacterCount}"
+                                   Text="{Binding KeystrokesPerMinute, StringFormat={}{0:0}}"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    Foreground="#2D2926" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2"
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="字速"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="#8B5E3C" />
+                        <TextBlock Margin="14,0,0,0"
+                                   Text="{Binding CharactersPerMinute, StringFormat={}{0:0}}"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="#2D2926" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="3"
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="码长"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="#8B5E3C" />
+                        <TextBlock Margin="14,0,0,0"
+                                   Text="{Binding AverageCodeLength, StringFormat={}{0:0.00}}"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="#2D2926" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4"
                                 HorizontalAlignment="Right"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center">
@@ -238,7 +272,7 @@
                                    Text="{Binding ErrorCharacterCount}"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#2D2926" />
+                                   Foreground="#C75146" />
                     </StackPanel>
                 </Grid>
             </Border>

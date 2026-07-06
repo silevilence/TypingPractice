@@ -34,6 +34,7 @@ public partial class App : Application
 
 		string connectionString = $"Data Source={Path.Combine(appDataDirectory, "typing-practice.db")}";
 		IArticleRepository articleRepository = new SqliteArticleRepository(connectionString);
+		ISessionRepository sessionRepository = new SqliteSessionRepository(connectionString);
 		IArticleImportService articleImportService = new ArticleImportService();
 		IArticleTextLayoutBuilder articleTextLayoutBuilder = new ArticleTextLayoutBuilder();
 		IFileDialogService fileDialogService = new FileDialogService();
@@ -46,8 +47,15 @@ public partial class App : Application
 			fileDialogService,
 			clipboardService,
 			systemClock);
+		HistoryViewModel history = new(articleRepository, sessionRepository);
 		SettingsViewModel settings = new();
-		MainViewModel mainViewModel = new(articleLibrary, settings, articleTextLayoutBuilder, systemClock);
+		MainViewModel mainViewModel = new(
+			articleLibrary,
+			history,
+			settings,
+			articleTextLayoutBuilder,
+			systemClock,
+			sessionRepository);
 
 		return new MainWindow(mainViewModel);
 	}

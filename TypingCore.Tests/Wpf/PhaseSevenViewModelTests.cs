@@ -14,8 +14,17 @@ public sealed class PhaseSevenViewModelTests
         ArticleLibraryViewModel articleLibrary = CreateArticleLibraryViewModel();
         SettingsViewModel settings = new();
         FakeSystemClock clock = new(new DateTimeOffset(2026, 7, 3, 8, 0, 0, TimeSpan.Zero));
+        FakeArticleRepository articleRepository = new();
+        InMemorySessionRepository sessionRepository = new();
+        HistoryViewModel history = new(articleRepository, sessionRepository);
 
-        MainViewModel viewModel = new(articleLibrary, settings, new ArticleTextLayoutBuilder(), clock);
+        MainViewModel viewModel = new(
+            articleLibrary,
+            history,
+            settings,
+            new ArticleTextLayoutBuilder(),
+            clock,
+            sessionRepository);
 
         Assert.Same(articleLibrary, viewModel.CurrentPage);
         Assert.True(viewModel.IsArticleLibrarySelected);

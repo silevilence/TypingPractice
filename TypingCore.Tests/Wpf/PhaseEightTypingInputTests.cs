@@ -27,8 +27,15 @@ public sealed class PhaseEightTypingInputTests
                 "春眠不觉晓",
                 clock.UtcNow,
                 new[] { "古诗" }));
+        InMemorySessionRepository sessionRepository = new();
         ArticleLibraryViewModel articleLibrary = CreateArticleLibraryViewModel(repository, clock);
-        MainViewModel viewModel = new(articleLibrary, new SettingsViewModel(), new ArticleTextLayoutBuilder(), clock);
+        MainViewModel viewModel = new(
+            articleLibrary,
+            new HistoryViewModel(repository, sessionRepository),
+            new SettingsViewModel(),
+            new ArticleTextLayoutBuilder(),
+            clock,
+            sessionRepository);
 
         await articleLibrary.LoadAsync();
 
