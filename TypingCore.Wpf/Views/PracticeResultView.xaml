@@ -12,8 +12,8 @@
             <Setter Property="Padding" Value="28,0" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-            <Setter Property="Background" Value="#8B5E3C" />
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
@@ -30,7 +30,7 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ButtonBorder"
                                         Property="Background"
-                                        Value="#7A5234" />
+                                        Value="{DynamicResource AccentHoverBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
@@ -44,9 +44,9 @@
         <Style x:Key="SecondaryButtonStyle"
                TargetType="Button"
                BasedOn="{StaticResource PrimaryButtonStyle}">
-            <Setter Property="Foreground" Value="#8B5E3C" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="#8B5E3C" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -64,7 +64,7 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ButtonBorder"
                                         Property="Background"
-                                        Value="#F0E6D6" />
+                                        Value="{DynamicResource TagBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
@@ -78,11 +78,11 @@
         <Style x:Key="MetricCardStyle" TargetType="Border">
             <Setter Property="Margin" Value="7" />
             <Setter Property="Padding" Value="20" />
-            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
             <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect Color="#000000"
+                    <DropShadowEffect Color="Black"
                                       BlurRadius="14"
                                       ShadowDepth="2"
                                       Opacity="0.06"
@@ -92,7 +92,7 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Background="#FAF8F5">
+    <Grid Background="{DynamicResource PaperBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -103,16 +103,16 @@
             <TextBlock Text="本次练习完成"
                        FontSize="18"
                        FontWeight="SemiBold"
-                       Foreground="#5B8C5A" />
+                       Foreground="{DynamicResource SuccessBrush}" />
             <TextBlock Margin="0,8,0,0"
                        Text="{Binding ArticleTitle}"
                        FontSize="28"
                        FontWeight="Bold"
-                       Foreground="#2D2926" />
+                       Foreground="{DynamicResource PrimaryTextBrush}" />
             <TextBlock Margin="0,8,0,0"
                        Text="结果已保存，可重练当前文章或查看历史趋势。"
                        FontSize="14"
-                       Foreground="#7A7067" />
+                       Foreground="{DynamicResource SecondaryTextBrush}" />
         </StackPanel>
 
         <UniformGrid Grid.Row="1"
@@ -120,82 +120,82 @@
                      Columns="4">
             <Border Style="{StaticResource MetricCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="键速 KPM" FontSize="12" Foreground="#7A7067" />
+                    <TextBlock Text="键速 KPM" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <TextBlock Margin="0,8,0,0"
                                Text="{Binding KeystrokesPerMinute, StringFormat={}{0:0}}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource MetricCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="字速 CPM" FontSize="12" Foreground="#7A7067" />
+                    <TextBlock Text="字速 CPM" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <TextBlock Margin="0,8,0,0"
                                Text="{Binding CharactersPerMinute, StringFormat={}{0:0}}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource MetricCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="英文 WPM" FontSize="12" Foreground="#7A7067" />
+                    <TextBlock Text="英文 WPM" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <TextBlock Margin="0,8,0,0"
                                Text="{Binding WordsPerMinute, StringFormat={}{0:0.0}}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource MetricCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="平均码长" FontSize="12" Foreground="#7A7067" />
+                    <TextBlock Text="平均码长" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <TextBlock Margin="0,8,0,0"
                                Text="{Binding AverageCodeLength, StringFormat={}{0:0.00}}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource MetricCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="错误字符" FontSize="12" Foreground="#7A7067" />
+                    <TextBlock Text="错误字符" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <TextBlock Margin="0,8,0,0"
                                Text="{Binding ErrorCharacterCount}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#C75146" />
+                               Foreground="{DynamicResource ErrorBrush}" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource MetricCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="错误率" FontSize="12" Foreground="#7A7067" />
+                    <TextBlock Text="错误率" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <TextBlock Margin="0,8,0,0"
                                Text="{Binding ErrorRate, StringFormat={}{0:P1}}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#C75146" />
+                               Foreground="{DynamicResource ErrorBrush}" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource MetricCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="退格次数" FontSize="12" Foreground="#7A7067" />
+                    <TextBlock Text="退格次数" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <TextBlock Margin="0,8,0,0"
                                Text="{Binding BackspaceCount}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource MetricCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="总耗时" FontSize="12" Foreground="#7A7067" />
+                    <TextBlock Text="总耗时" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <TextBlock Margin="0,8,0,0"
                                Text="{Binding ElapsedText}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                 </StackPanel>
             </Border>
         </UniformGrid>

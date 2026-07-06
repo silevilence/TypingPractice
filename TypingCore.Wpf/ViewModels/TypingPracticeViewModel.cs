@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Text;
 using TypingCore.Abstractions;
 using TypingCore.Engine;
 using TypingCore.Models;
@@ -17,6 +18,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
     private readonly Action<IArticleRecord, IStatisticsSnapshot, int>? completionCallback;
     private readonly ICodeTableProvider? codeTableProvider;
     private readonly WindowMessageInputTranslator inputTranslator;
+    private readonly UserPreferences preferences;
     private readonly Action returnToLibrary;
     private readonly ITypingSession session;
     private readonly ISessionRepository? sessionRepository;
@@ -26,6 +28,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
     private IReadOnlyList<ICodeLookupResult> codeHints = [];
     private double charactersPerMinute;
     private string committedText = string.Empty;
+    private readonly StringBuilder committedTextBuilder = new();
     private int correctCharacterCount;
     private int completionVersion;
     private int currentTextIndex;
@@ -46,7 +49,8 @@ public sealed class TypingPracticeViewModel : PageViewModel
         Action returnToLibrary,
         ISessionRepository? sessionRepository = null,
         Action<IArticleRecord, IStatisticsSnapshot, int>? completionCallback = null,
-        ICodeTableProvider? codeTableProvider = null)
+        ICodeTableProvider? codeTableProvider = null,
+        UserPreferences? preferences = null)
         : base("开始练习")
     {
         ArgumentNullException.ThrowIfNull(article);
@@ -60,6 +64,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
         this.returnToLibrary = returnToLibrary;
         this.sessionRepository = sessionRepository;
         this.systemClock = systemClock;
+        this.preferences = preferences ?? UserPreferences.Default;
 
         ArticleTitle = article.Title;
         ArticleLayout = articleTextLayoutBuilder.Build(article.RawText);
@@ -71,9 +76,11 @@ public sealed class TypingPracticeViewModel : PageViewModel
         RestartCommand = new RelayCommand(RequestRestart);
         ConfirmRestartCommand = new RelayCommand(Restart);
         CancelRestartCommand = new RelayCommand(CancelRestart);
+        PauseCommand = new RelayCommand(TogglePause);
         ReturnToLibraryCommand = new RelayCommand(ReturnToLibrary);
         SelectInterleavedLayoutCommand = new RelayCommand(() => SelectLayout(true));
         SelectFollowingLayoutCommand = new RelayCommand(() => SelectLayout(false));
+        ToggleLayoutCommand = new RelayCommand(ToggleLayout);
 
         RefreshSessionState();
     }
@@ -160,11 +167,27 @@ public sealed class TypingPracticeViewModel : PageViewModel
             if (SetProperty(ref sessionState, value))
             {
                 OnPropertyChanged(nameof(IsCompleted));
+                OnPropertyChanged(nameof(IsPaused));
+                OnPropertyChanged(nameof(PauseButtonText));
             }
         }
     }
 
     public bool IsCompleted => SessionState == TypingSessionState.Completed;
+
+    public bool IsPaused => SessionState == TypingSessionState.Paused;
+
+    public string PauseButtonText => IsPaused ? "继续练习" : "暂停练习";
+
+    public string PracticeFontFamily => preferences.FontFamily;
+
+    public double PracticeFontSize => preferences.FontSize;
+
+    public string PauseShortcut => preferences.PauseShortcut;
+
+    public string RestartShortcut => preferences.RestartShortcut;
+
+    public string ToggleLayoutShortcut => preferences.ToggleLayoutShortcut;
 
     public bool IsInterleavedLayout
     {
@@ -202,11 +225,15 @@ public sealed class TypingPracticeViewModel : PageViewModel
 
     public IRelayCommand CancelRestartCommand { get; }
 
+    public IRelayCommand PauseCommand { get; }
+
     public IRelayCommand ReturnToLibraryCommand { get; }
 
     public IRelayCommand SelectInterleavedLayoutCommand { get; }
 
     public IRelayCommand SelectFollowingLayoutCommand { get; }
+
+    public IRelayCommand ToggleLayoutCommand { get; }
 
     public bool HandleWindowMessage(int message, nint wParam)
     {
@@ -249,6 +276,11 @@ public sealed class TypingPracticeViewModel : PageViewModel
         }
 
         if (IsRestartConfirmationVisible)
+        {
+            return true;
+        }
+
+        if (IsPaused)
         {
             return true;
         }
@@ -331,6 +363,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
         IsRestartConfirmationVisible = false;
         session.Reset();
         inputTranslator.Reset();
+        committedTextBuilder.Clear();
         isCompletionHandled = false;
         completionVersion++;
         sessionId = Guid.NewGuid().ToString("N");
@@ -371,6 +404,29 @@ public sealed class TypingPracticeViewModel : PageViewModel
             : "已切换到上下跟随布局，当前练习进度保持不变。";
     }
 
+    private void ToggleLayout() => SelectLayout(!IsInterleavedLayout);
+
+    private void TogglePause()
+    {
+        if (SessionState == TypingSessionState.Running)
+        {
+            session.Pause(systemClock.UtcNow);
+            RefreshSessionState();
+            StatusMessage = $"练习已暂停，按 {PauseShortcut} 继续。";
+            return;
+        }
+
+        if (SessionState == TypingSessionState.Paused)
+        {
+            session.Resume(systemClock.UtcNow);
+            RefreshSessionState();
+            StatusMessage = "练习已继续。";
+            return;
+        }
+
+        StatusMessage = "开始输入后才能暂停练习。";
+    }
+
     private void RefreshSessionState()
     {
         ITypingSessionSnapshot snapshot = session.Snapshot;
@@ -383,17 +439,33 @@ public sealed class TypingPracticeViewModel : PageViewModel
         KeystrokesPerMinute = statistics.KeystrokesPerMinute;
         CharactersPerMinute = statistics.CharactersPerMinute;
         AverageCodeLength = statistics.AverageCodeLength;
-        CommittedText = new string(snapshot.Characters
-            .Take(CurrentTextIndex)
-            .Select(character => character.InputChar ?? '\0')
-            .Where(character => character != '\0')
-            .ToArray());
+        if (committedTextBuilder.Length > CurrentTextIndex)
+        {
+            committedTextBuilder.Length = CurrentTextIndex;
+        }
+        else
+        {
+            for (int index = committedTextBuilder.Length; index < CurrentTextIndex; index++)
+            {
+                if (snapshot.Characters[index].InputChar is char inputChar)
+                {
+                    committedTextBuilder.Append(inputChar);
+                }
+            }
+        }
+
+        CommittedText = committedTextBuilder.ToString();
+        int remainingLength = TargetText.Length - CurrentTextIndex;
+        // ponytail: code-table hints only need a short prefix; widen this if phrase tables exceed 32 characters.
+        int hintLength = Math.Min(32, remainingLength);
         CodeHints = codeTableProvider is null
             || IsCompleted
             || CurrentTextIndex < 0
             || CurrentTextIndex >= TargetText.Length
                 ? []
-                : codeTableProvider.Lookup(TargetText[CurrentTextIndex..], 3);
+                : codeTableProvider.Lookup(
+                    TargetText.Substring(CurrentTextIndex, hintLength),
+                    3);
     }
 
     private async Task SaveCompletedSessionAsync(

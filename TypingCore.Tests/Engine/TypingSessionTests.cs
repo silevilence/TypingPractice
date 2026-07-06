@@ -2,6 +2,7 @@ using TypingCore.Abstractions;
 using TypingCore.Engine;
 using TypingCore.Models;
 using TypingCore.Parsing;
+using System.Diagnostics;
 
 namespace TypingCore.Tests.Engine;
 
@@ -155,5 +156,66 @@ public class TypingSessionTests
         Assert.Equal(expectedSummaryRate / 5d, completed.WordsPerMinute, 3);
         Assert.Equal(1d, completed.AverageCodeLength);
         Assert.Equal(TimeSpan.FromSeconds(12.005), completed.Elapsed);
+    }
+
+    [Fact]
+    public void Pause_and_resume_exclude_paused_time_and_ignore_input_while_paused()
+    {
+        DateTimeOffset startedAt = new(2026, 7, 6, 10, 0, 0, TimeSpan.Zero);
+        ITypingSession session = new TypingSession(LayoutBuilder.Build("ab"));
+
+        session.ProcessInput(new KeyInputEvent(
+            KeyInputKey.Character,
+            startedAt,
+            false,
+            "a",
+            false));
+        session.Pause(startedAt.AddSeconds(1));
+        session.ProcessInput(new KeyInputEvent(
+            KeyInputKey.Character,
+            startedAt.AddMinutes(5),
+            false,
+            "b",
+            false));
+
+        Assert.Equal(TypingSessionState.Paused, session.Snapshot.State);
+        Assert.Equal(1, session.Snapshot.CurrentTextIndex);
+
+        session.Resume(startedAt.AddMinutes(5));
+        session.ProcessInput(new KeyInputEvent(
+            KeyInputKey.Character,
+            startedAt.AddMinutes(5).AddSeconds(1),
+            false,
+            "b",
+            false));
+
+        Assert.Equal(TypingSessionState.Completed, session.Snapshot.State);
+        Assert.Equal(TimeSpan.FromSeconds(2), session.StatisticsProvider.Current.Elapsed);
+    }
+
+    [Fact]
+    public void ProcessInput_handles_high_frequency_input_for_long_article()
+    {
+        const int characterCount = 5_000;
+        DateTimeOffset startedAt = new(2026, 7, 6, 11, 0, 0, TimeSpan.Zero);
+        ITypingSession session = new TypingSession(LayoutBuilder.Build(new string('a', characterCount)));
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        for (int index = 0; index < characterCount; index++)
+        {
+            session.ProcessInput(new KeyInputEvent(
+                KeyInputKey.Character,
+                startedAt.AddMilliseconds(index),
+                false,
+                "a",
+                false));
+        }
+
+        stopwatch.Stop();
+        Assert.Equal(TypingSessionState.Completed, session.Snapshot.State);
+        Assert.Equal(characterCount, session.Snapshot.CorrectCharacterCount);
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"长文章高频输入耗时 {stopwatch.Elapsed.TotalSeconds:0.00} 秒。");
     }
 }

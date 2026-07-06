@@ -11,7 +11,7 @@
              Unloaded="UserControl_Unloaded">
     <UserControl.Resources>
         <Style x:Key="PanelBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="#FAF8F5" />
+            <Setter Property="Background" Value="{DynamicResource PaperBackgroundBrush}" />
             <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Padding" Value="22" />
         </Style>
@@ -21,8 +21,8 @@
             <Setter Property="Padding" Value="28,0" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-            <Setter Property="Background" Value="#8B5E3C" />
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
@@ -37,7 +37,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBackground" Property="Background" Value="#7A5234" />
+                                <Setter TargetName="BtnBackground" Property="Background" Value="{DynamicResource AccentHoverBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
@@ -53,9 +53,9 @@
             <Setter Property="Padding" Value="28,0" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#8B5E3C" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="#8B5E3C" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
@@ -71,7 +71,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBackground" Property="Background" Value="#F0E6D6" />
+                                <Setter TargetName="BtnBackground" Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
@@ -83,8 +83,8 @@
         </Style>
 
         <Style x:Key="PracticeCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#E8E2DA" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Padding" Value="20" />
@@ -104,7 +104,7 @@
                BasedOn="{StaticResource SecondaryButtonStyle}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsInterleavedLayout}" Value="True">
-                    <Setter Property="Background" Value="#F0E6D6" />
+                    <Setter Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -114,7 +114,7 @@
                BasedOn="{StaticResource SecondaryButtonStyle}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsFollowingLayout}" Value="True">
-                    <Setter Property="Background" Value="#F0E6D6" />
+                    <Setter Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -162,10 +162,10 @@
                         <TextBlock Text="{Binding ArticleTitle}"
                                    FontSize="18"
                                    FontWeight="Bold"
-                                   Foreground="#2D2926" />
+                                   Foreground="{DynamicResource PrimaryTextBrush}" />
                         <TextBlock Margin="0,6,0,0"
                                    Text="{Binding StatusMessage}"
-                                   Foreground="#7A7067"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                    FontSize="12"
                                    TextWrapping="Wrap"
                                    LineHeight="18" />
@@ -174,6 +174,10 @@
                     <StackPanel Grid.Column="1"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Top">
+                        <Button Margin="0,0,10,0"
+                                Command="{Binding PauseCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Content="{Binding PauseButtonText}" />
                         <Button Margin="0,0,10,0"
                                 Command="{Binding RestartCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
@@ -203,12 +207,12 @@
                                    Text="进度"
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="#8B5E3C" />
+                                   Foreground="{DynamicResource AccentBrush}" />
                         <TextBlock Margin="14,0,0,0"
                                    Text="{Binding ProgressText}"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#2D2926" />
+                                   Foreground="{DynamicResource PrimaryTextBrush}" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="1"
@@ -219,12 +223,12 @@
                                    Text="键速"
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="#8B5E3C" />
+                                   Foreground="{DynamicResource AccentBrush}" />
                         <TextBlock Margin="14,0,0,0"
                                    Text="{Binding KeystrokesPerMinute, StringFormat={}{0:0}}"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#2D2926" />
+                                   Foreground="{DynamicResource PrimaryTextBrush}" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2"
@@ -235,12 +239,12 @@
                                    Text="字速"
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="#8B5E3C" />
+                                   Foreground="{DynamicResource AccentBrush}" />
                         <TextBlock Margin="14,0,0,0"
                                    Text="{Binding CharactersPerMinute, StringFormat={}{0:0}}"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#2D2926" />
+                                   Foreground="{DynamicResource PrimaryTextBrush}" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="3"
@@ -251,12 +255,12 @@
                                    Text="码长"
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="#8B5E3C" />
+                                   Foreground="{DynamicResource AccentBrush}" />
                         <TextBlock Margin="14,0,0,0"
                                    Text="{Binding AverageCodeLength, StringFormat={}{0:0.00}}"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#2D2926" />
+                                   Foreground="{DynamicResource PrimaryTextBrush}" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="4"
@@ -267,12 +271,12 @@
                                    Text="错误"
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="#8B5E3C" />
+                                   Foreground="{DynamicResource AccentBrush}" />
                         <TextBlock Margin="14,0,0,0"
                                    Text="{Binding ErrorCharacterCount}"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#C75146" />
+                                   Foreground="{DynamicResource ErrorBrush}" />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -297,7 +301,7 @@
                                    Text="练习布局"
                                    FontSize="15"
                                    FontWeight="SemiBold"
-                                   Foreground="#2D2926" />
+                                   Foreground="{DynamicResource PrimaryTextBrush}" />
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <Button Margin="0,0,10,0"
@@ -324,7 +328,8 @@
                                                                       ArticleLayout="{Binding ArticleLayout}"
                                                                       CharacterSnapshots="{Binding CharacterSnapshots}"
                                                                       CurrentTextIndex="{Binding CurrentTextIndex}"
-                                                                      FontSize="18" />
+                                                                      FontFamily="{Binding PracticeFontFamily}"
+                                                                      FontSize="{Binding PracticeFontSize}" />
                             </ScrollViewer>
                         </Grid>
 
@@ -345,7 +350,7 @@
                                     <TextBlock Text="原文跟随"
                                                FontSize="15"
                                                FontWeight="SemiBold"
-                                               Foreground="#2D2926" />
+                                               Foreground="{DynamicResource PrimaryTextBrush}" />
                                     <ScrollViewer x:Name="FollowingTargetScrollViewer"
                                                   Grid.Row="1"
                                                   Margin="0,12,0,0"
@@ -353,8 +358,8 @@
                                                   VerticalScrollBarVisibility="Auto"
                                                   HorizontalScrollBarVisibility="Disabled">
                                         <views:FollowingTypingTextBlock CharacterSnapshots="{Binding CharacterSnapshots}"
-                                                                        FontSize="18"
-                                                                        LineHeight="27"
+                                                                        FontFamily="{Binding PracticeFontFamily}"
+                                                                        FontSize="{Binding PracticeFontSize}"
                                                                         TextWrapping="Wrap" />
                                     </ScrollViewer>
                                 </Grid>
@@ -370,7 +375,7 @@
                                     <TextBlock Text="自由输入"
                                                FontSize="15"
                                                FontWeight="SemiBold"
-                                               Foreground="#2D2926" />
+                                               Foreground="{DynamicResource PrimaryTextBrush}" />
                                     <ScrollViewer x:Name="FollowingInputScrollViewer"
                                                   Grid.Row="1"
                                                   Margin="0,12,0,0"
@@ -381,14 +386,14 @@
                                             <TextBlock Text="{Binding CommittedText, NotifyOnTargetUpdated=True}"
                                                        TargetUpdated="FollowingInputText_TargetUpdated"
                                                        MinHeight="54"
-                                                       FontSize="18"
-                                                       LineHeight="27"
-                                                       Foreground="#2D2926"
+                                                       FontFamily="{Binding PracticeFontFamily}"
+                                                       FontSize="{Binding PracticeFontSize}"
+                                                       Foreground="{DynamicResource PrimaryTextBrush}"
                                                        TextWrapping="Wrap" />
                                             <TextBlock IsHitTestVisible="False"
                                                        Text="已上屏内容会在这里连续展示"
                                                        FontSize="14"
-                                                       Foreground="#7A7067">
+                                                       Foreground="{DynamicResource SecondaryTextBrush}">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Collapsed" />
@@ -435,12 +440,12 @@
                     Padding="16"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
-                    Background="#FFFFFF"
-                    BorderBrush="#E8E2DA"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="14">
                 <Border.Effect>
-                    <DropShadowEffect Color="#000000"
+                    <DropShadowEffect Color="Black"
                                       BlurRadius="14"
                                       ShadowDepth="2"
                                       Opacity="0.06"
@@ -460,7 +465,7 @@
                     <TextBlock Text="编码提示"
                                FontSize="15"
                                FontWeight="SemiBold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                     <ItemsControl Margin="0,10,0,0"
                                   ItemsSource="{Binding CodeHints}">
                         <ItemsControl.ItemTemplate>
@@ -471,12 +476,12 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Border Padding="10,4"
-                                            Background="#F0E6D6"
+                                            Background="{DynamicResource TagBackgroundBrush}"
                                             CornerRadius="999">
                                         <TextBlock Text="{Binding SourceText}"
                                                    FontSize="12"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#8B5E3C" />
+                                                   Foreground="{DynamicResource AccentBrush}" />
                                     </Border>
                                     <ItemsControl Grid.Column="1"
                                                   Margin="10,0,0,0"
@@ -494,7 +499,7 @@
                                                            FontFamily="Consolas"
                                                            FontSize="14"
                                                            FontWeight="SemiBold"
-                                                           Foreground="#2D2926" />
+                                                           Foreground="{DynamicResource PrimaryTextBrush}" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -522,12 +527,12 @@
                         Padding="24"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Background="#FFFFFF"
-                        BorderBrush="#E8E2DA"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="16">
                     <Border.Effect>
-                        <DropShadowEffect Color="#000000"
+                        <DropShadowEffect Color="Black"
                                           BlurRadius="16"
                                           ShadowDepth="2"
                                           Opacity="0.06"
@@ -537,11 +542,11 @@
                         <TextBlock Text="确认重新开始？"
                                    FontSize="18"
                                    FontWeight="SemiBold"
-                                   Foreground="#2D2926" />
+                                   Foreground="{DynamicResource PrimaryTextBrush}" />
                         <TextBlock Margin="0,10,0,0"
                                    Text="当前进度和本次实时统计将被清空。连续按 Esc 只会取消，不会确认。"
                                    FontSize="14"
-                                   Foreground="#7A7067"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                    TextWrapping="Wrap"
                                    LineHeight="22" />
                         <StackPanel Margin="0,20,0,0"

@@ -10,6 +10,8 @@
 - **文章导入**：支持 TXT 文件导入（自动识别 UTF-8/GBK 编码）和剪贴板文本导入
 - **数据持久化**：SQLite 存储文章库与练习历史记录
 - **码表反查**：预留码表接口，支持五笔/双拼等输入法的编码提示
+- **个性化设置**：支持明暗主题、练习字体与字号、暂停/重来/布局快捷键
+- **偏好持久化**：设置保存到本地 JSON，启动时自动恢复
 
 ## 环境要求
 
@@ -30,7 +32,7 @@ dotnet restore
 # 3. 运行测试
 dotnet test
 
-# 4. 启动 WPF 前端（目前为基础窗口框架）
+# 4. 启动 WPF 前端
 dotnet run --project TypingCore.Wpf
 ```
 
@@ -60,6 +62,9 @@ dotnet test TypingCore.Tests
 
 # 运行指定测试类
 dotnet test --filter "FullyQualifiedName~TypingSessionTests"
+
+# 采集覆盖率
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
 测试项目使用 xUnit 框架，覆盖以下模块：
@@ -67,6 +72,9 @@ dotnet test --filter "FullyQualifiedName~TypingSessionTests"
 - `Parsing/`：文章导入与文本规范化（编码检测、换行处理、字符分类）
 - `Persistence/`：SQLite 仓库 CRUD 与查询
 - `Models/`：数据模型契约验证
+- `Wpf/`：导航、输入消息、渲染布局、设置与快捷键行为
+
+最近一次阶段十四检查结果：Core 行覆盖率 92.44%，分支覆盖率 80.67%。
 
 ## 项目结构
 
@@ -145,19 +153,23 @@ TypingPractice/
 
 ## 开发进度
 
-**已完成**（阶段一 ~ 六）：
+**已完成**（阶段一 ~ 十三及阶段十四自动化部分）：
 - 项目初始化与架构搭建
 - 数据模型与内部格式设计
 - SQLite 数据持久化层
 - 文章导入与解析模块
 - 打字比对核心引擎
 - 统计指标计算引擎
-
-**开发中**（阶段七 ~ 十五）：
 - WPF 前端（基础窗口、键盘事件、布局渲染、统计面板）
 - 码表导入与编码提示
-- 设置与个性化功能
-- 整体测试与优化
-- 打包与发布
+- 设置与个性化功能（主题、字体、快捷键、偏好持久化）
+- 整体测试、边界处理与长文章输入优化
+
+**待真实环境验证**：
+- 按 [`docs/testing/phase14-manual-ime-checklist.md`](docs/testing/phase14-manual-ime-checklist.md)
+  完成微软拼音、五笔和双拼的多轮手动测试
+
+**计划中**（阶段十五）：
+- Velopack 打包与 GitHub Actions 自动发布
 
 详见 [`ROADMAP.md`](ROADMAP.md)。

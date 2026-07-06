@@ -19,11 +19,6 @@ public sealed class FollowingTypingTextBlock : TextBlock
         typeof(FollowingTypingTextBlock),
         new FrameworkPropertyMetadata(null, OnCharacterSnapshotsChanged));
 
-    private static readonly Brush PendingBrush = CreateBrush(0x2D, 0x29, 0x26);
-    private static readonly Brush CurrentBrush = CreateBrush(0x8B, 0x5E, 0x3C);
-    private static readonly Brush CurrentBackgroundBrush = CreateBrush(0xF0, 0xE6, 0xD6);
-    private static readonly Brush CompletedBrush = CreateBrush(0x7A, 0x70, 0x67);
-    private static readonly Brush ErrorBrush = CreateBrush(0xC7, 0x51, 0x46);
     private Run? currentRun;
     private Run? lastRun;
 
@@ -38,13 +33,6 @@ public sealed class FollowingTypingTextBlock : TextBlock
         DependencyPropertyChangedEventArgs eventArgs)
         => ((FollowingTypingTextBlock)dependencyObject).RebuildInlines();
 
-    private static SolidColorBrush CreateBrush(byte red, byte green, byte blue)
-    {
-        SolidColorBrush brush = new(Color.FromRgb(red, green, blue));
-        brush.Freeze();
-        return brush;
-    }
-
     private void RebuildInlines()
     {
         Inlines.Clear();
@@ -53,20 +41,20 @@ public sealed class FollowingTypingTextBlock : TextBlock
 
         foreach (FollowingTypingSegment segment in FollowingTypingSegmentBuilder.Build(CharacterSnapshots))
         {
-            Run run = new(segment.Text)
-            {
-                Foreground = segment.State switch
+            Run run = new(segment.Text);
+            run.SetResourceReference(
+                TextElement.ForegroundProperty,
+                segment.State switch
                 {
-                    TypingCharacterState.Current => CurrentBrush,
-                    TypingCharacterState.Correct => CompletedBrush,
-                    TypingCharacterState.Incorrect => ErrorBrush,
-                    _ => PendingBrush,
-                },
-            };
+                    TypingCharacterState.Current => "AccentBrush",
+                    TypingCharacterState.Correct => "SecondaryTextBrush",
+                    TypingCharacterState.Incorrect => "ErrorBrush",
+                    _ => "PrimaryTextBrush",
+                });
 
             if (segment.State == TypingCharacterState.Current)
             {
-                run.Background = CurrentBackgroundBrush;
+                run.SetResourceReference(TextElement.BackgroundProperty, "TagBackgroundBrush");
                 run.FontWeight = FontWeights.SemiBold;
                 currentRun = run;
             }

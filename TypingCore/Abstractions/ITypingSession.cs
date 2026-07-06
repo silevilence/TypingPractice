@@ -25,6 +25,18 @@ public interface ITypingSession
     void ProcessInput(IKeyInputEvent inputEvent);
 
     /// <summary>
+    /// Pauses a running session at the supplied timestamp.
+    /// </summary>
+    /// <param name="timestamp">The timestamp when the pause started.</param>
+    void Pause(DateTimeOffset timestamp);
+
+    /// <summary>
+    /// Resumes a paused session at the supplied timestamp.
+    /// </summary>
+    /// <param name="timestamp">The timestamp when input resumes.</param>
+    void Resume(DateTimeOffset timestamp);
+
+    /// <summary>
     /// Resets the session back to its initial state.
     /// </summary>
     void Reset();

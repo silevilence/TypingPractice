@@ -89,6 +89,7 @@ public sealed class MainViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
+        await settings.LoadAsync();
         await articleLibrary.LoadAsync();
         if (codeTableManager is not null)
         {
@@ -127,7 +128,8 @@ public sealed class MainViewModel : ObservableObject
                     ShowResult(completedArticle, statistics, errorCharacterCount);
                 }
             },
-            codeTableProvider);
+            codeTableProvider,
+            settings.CurrentPreferences);
         CurrentPage = practice;
     }
 

@@ -54,7 +54,11 @@ public partial class App : Application
 			clipboardService,
 			systemClock);
 		HistoryViewModel history = new(articleRepository, sessionRepository);
-		SettingsViewModel settings = new();
+		IUserPreferencesRepository preferencesRepository = new JsonUserPreferencesRepository(
+			Path.Combine(appDataDirectory, "preferences.json"));
+		SettingsViewModel settings = new(
+			preferencesRepository,
+			ApplicationThemeManager.Apply);
 		CodeTableManagerViewModel codeTableManager = new(
 			codeTableRepository,
 			codeTableProvider,

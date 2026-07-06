@@ -72,6 +72,13 @@ public partial class TypingPracticeView : UserControl
             return;
         }
 
+        if (TryHandleShortcut(e, viewModel))
+        {
+            e.Handled = true;
+            FocusInputSurface();
+            return;
+        }
+
         Key key = e.Key == Key.System ? e.SystemKey : e.Key;
         int virtualKey = KeyInterop.VirtualKeyFromKey(key);
         bool consumed = viewModel.HandlePreviewKeyDown(virtualKey);
@@ -82,6 +89,31 @@ public partial class TypingPracticeView : UserControl
 
         e.Handled = ShouldHandlePreviewKey(key, viewModel);
         FocusInputSurface();
+    }
+
+    private static bool TryHandleShortcut(
+        KeyEventArgs eventArgs,
+        TypingPracticeViewModel viewModel)
+    {
+        if (ShortcutGesture.Matches(eventArgs, viewModel.PauseShortcut))
+        {
+            viewModel.PauseCommand.Execute(null);
+            return true;
+        }
+
+        if (ShortcutGesture.Matches(eventArgs, viewModel.RestartShortcut))
+        {
+            viewModel.RestartCommand.Execute(null);
+            return true;
+        }
+
+        if (ShortcutGesture.Matches(eventArgs, viewModel.ToggleLayoutShortcut))
+        {
+            viewModel.ToggleLayoutCommand.Execute(null);
+            return true;
+        }
+
+        return false;
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

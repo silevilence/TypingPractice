@@ -6,6 +6,17 @@ namespace TypingCore.Tests.Models;
 public class ArticleAndSessionModelTests
 {
     [Fact]
+    public void Article_rejects_empty_content()
+    {
+        Assert.Throws<ArgumentException>(() => new Article(
+            "article-1",
+            "空文章",
+            " ",
+            new DateTimeOffset(2026, 7, 6, 12, 0, 0, TimeSpan.Zero),
+            []));
+    }
+
+    [Fact]
     public void Article_implements_article_record_contract()
     {
         DateTimeOffset createdAt = new(2026, 7, 3, 8, 0, 0, TimeSpan.Zero);

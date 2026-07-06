@@ -180,14 +180,14 @@ public sealed class PhaseSevenViewModelTests
     }
 
     [Fact]
-    public void SettingsViewModel_exposes_stage_seven_scaffold_options()
+    public void SettingsViewModel_exposes_personalization_options()
     {
         SettingsViewModel viewModel = new();
 
         Assert.Contains("跟随系统", viewModel.ThemeOptions);
-        Assert.Contains("霞鹜文楷", viewModel.FontOptions);
-        Assert.Contains(viewModel.ShortcutHints, hint => hint.Contains("暂停"));
-        Assert.NotEmpty(viewModel.Description);
+        Assert.Contains("Microsoft YaHei UI", viewModel.FontOptions);
+        Assert.Contains(18d, viewModel.FontSizeOptions);
+        Assert.Contains("Ctrl+P", viewModel.ShortcutOptions);
     }
 
     private static ArticleLibraryViewModel CreateArticleLibraryViewModel(

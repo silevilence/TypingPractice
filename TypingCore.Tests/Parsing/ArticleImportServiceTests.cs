@@ -65,16 +65,26 @@ public sealed class ArticleImportServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ImportFromFileAsync_returns_empty_text_for_empty_file()
+    public async Task ImportFromFileAsync_rejects_empty_file()
     {
         string filePath = Path.Combine(tempDirectory, "empty.txt");
         await File.WriteAllBytesAsync(filePath, Array.Empty<byte>());
 
-        ArticleImportResult result = await service.ImportFromFileAsync(filePath);
+        InvalidDataException exception = await Assert.ThrowsAsync<InvalidDataException>(
+            () => service.ImportFromFileAsync(filePath));
 
-        Assert.Equal("empty", result.Title);
-        Assert.Equal(string.Empty, result.NormalizedText);
-        Assert.Equal("utf-8", result.DetectedEncodingName);
+        Assert.Contains("不能为空", exception.Message);
+    }
+
+    [Fact]
+    public void ImportFromText_rejects_article_over_supported_length()
+    {
+        string text = new('中', Article.MaximumTextLength + 1);
+
+        InvalidDataException exception = Assert.Throws<InvalidDataException>(
+            () => service.ImportFromText("超长文章", text));
+
+        Assert.Contains(Article.MaximumTextLength.ToString(), exception.Message);
     }
 
     [Fact]

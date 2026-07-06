@@ -12,7 +12,7 @@
 
         <!-- 面板卡片样式 -->
         <Style x:Key="PanelBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="#FAF8F5" />
+            <Setter Property="Background" Value="{DynamicResource PaperBackgroundBrush}" />
             <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Padding" Value="20" />
         </Style>
@@ -24,8 +24,8 @@
             <Setter Property="Padding" Value="28,0" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-            <Setter Property="Background" Value="#8B5E3C" />
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
@@ -40,7 +40,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBackground" Property="Background" Value="#7A5234" />
+                                <Setter TargetName="BtnBackground" Property="Background" Value="{DynamicResource AccentHoverBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
@@ -57,9 +57,9 @@
             <Setter Property="Padding" Value="28,0" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#8B5E3C" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="#8B5E3C" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
@@ -75,7 +75,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBackground" Property="Background" Value="#F0E6D6" />
+                                <Setter TargetName="BtnBackground" Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
@@ -92,9 +92,9 @@
             <Setter Property="Padding" Value="38,0,12,0" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#2D2926" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#E8E2DA" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -110,7 +110,7 @@
                                       HorizontalAlignment="Left"
                                       VerticalAlignment="Center"
                                       Stretch="Uniform"
-                                      Stroke="#9A9088"
+                                      Stroke="{DynamicResource SecondaryTextBrush}"
                                       StrokeThickness="1.5"
                                       StrokeEndLineCap="Round"
                                       StrokeStartLineCap="Round"
@@ -125,7 +125,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="InputBorder" Property="BorderBrush" Value="#8B5E3C" />
+                                <Setter TargetName="InputBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -139,9 +139,9 @@
             <Setter Property="Padding" Value="12,0" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#2D2926" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#E8E2DA" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -160,7 +160,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="InputBorder" Property="BorderBrush" Value="#8B5E3C" />
+                                <Setter TargetName="InputBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -175,9 +175,9 @@
         <Style x:Key="StandardComboBoxStyle" TargetType="ComboBox">
             <Setter Property="Height" Value="40" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#2D2926" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#E8E2DA" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Cursor" Value="Hand" />
@@ -200,7 +200,7 @@
                                       HorizontalAlignment="Right"
                                       VerticalAlignment="Center"
                                       Stretch="Uniform"
-                                      Stroke="#8B5E3C"
+                                      Stroke="{DynamicResource AccentBrush}"
                                       StrokeThickness="1.5"
                                       StrokeEndLineCap="Round"
                                       StrokeStartLineCap="Round"
@@ -209,10 +209,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#8B5E3C" />
+                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                             </Trigger>
                             <Trigger Property="IsDropDownOpen" Value="True">
-                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#8B5E3C" />
+                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -235,16 +235,16 @@
                 <TextBlock Text="文章导入与筛选"
                            FontSize="18"
                            FontWeight="SemiBold"
-                           Foreground="#2D2926" />
+                           Foreground="{DynamicResource PrimaryTextBrush}" />
                 <TextBlock Margin="0,8,0,0"
                            Text="先在这里维护练习文章。文件导入和剪贴板导入都经过 Core 层的规范化流程，后续打字会话会直接消费这些记录。"
-                           Foreground="#7A7067"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
                            FontSize="13"
                            TextWrapping="Wrap"
                            LineHeight="20" />
                 <TextBlock Margin="0,14,0,0"
                            Text="{Binding StatusMessage}"
-                           Foreground="#8B5E3C"
+                           Foreground="{DynamicResource AccentBrush}"
                            FontSize="13"
                            FontWeight="SemiBold"
                            TextWrapping="Wrap" />
@@ -295,16 +295,16 @@
                     <TextBlock Text="从文件导入"
                                FontSize="15"
                                FontWeight="SemiBold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                     <TextBlock Margin="0,6,0,0"
                                Text="支持选择文本文件，标题默认取文件名，标签可在下方一次性填写。"
-                               Foreground="#7A7067"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                FontSize="12"
                                TextWrapping="Wrap"
                                LineHeight="18" />
                     <TextBlock Margin="0,16,0,0"
                                Text="标签（用逗号分隔）"
-                               Foreground="#7A7067"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                FontSize="12"
                                FontWeight="SemiBold" />
                     <TextBox Margin="0,8,0,0"
@@ -321,16 +321,16 @@
                     <TextBlock Text="从剪贴板导入"
                                FontSize="15"
                                FontWeight="SemiBold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                     <TextBlock Margin="0,6,0,0"
                                Text="适合临时粘贴练习文本。导入时会先读取标题，再用 Core 导入服务做统一规范化。"
-                               Foreground="#7A7067"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                FontSize="12"
                                TextWrapping="Wrap"
                                LineHeight="18" />
                     <TextBlock Margin="0,16,0,0"
                                Text="标题"
-                               Foreground="#7A7067"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                FontSize="12"
                                FontWeight="SemiBold" />
                     <TextBox Margin="0,8,0,0"
@@ -350,10 +350,10 @@
                     <DataTemplate>
                         <Border Margin="0,0,0,14"
                                 Padding="20"
-                                Background="#FFFFFF"
+                                Background="{DynamicResource CardBackgroundBrush}"
                                 CornerRadius="14">
                             <Border.Effect>
-                                <DropShadowEffect Color="#000000"
+                                <DropShadowEffect Color="Black"
                                                   BlurRadius="12"
                                                   ShadowDepth="2"
                                                   Opacity="0.06"
@@ -367,7 +367,7 @@
 
                                 <!-- 左侧装饰条 -->
                                 <Border Grid.Column="0"
-                                        Background="#8B5E3C"
+                                        Background="{DynamicResource AccentBrush}"
                                         CornerRadius="2"
                                         Margin="0,2,0,2" />
 
@@ -383,17 +383,17 @@
                                         <TextBlock Text="{Binding Title}"
                                                    FontSize="16"
                                                    FontWeight="Bold"
-                                                   Foreground="#2D2926" />
+                                                   Foreground="{DynamicResource PrimaryTextBrush}" />
                                         <TextBlock DockPanel.Dock="Right"
                                                    Text="{Binding CreatedAtText}"
-                                                   Foreground="#9A9088"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                                    FontSize="12" />
                                     </DockPanel>
 
                                     <TextBlock Grid.Row="1"
                                                Margin="0,8,0,0"
                                                Text="{Binding PreviewText}"
-                                               Foreground="#5D544B"
+                                               Foreground="{DynamicResource PrimaryTextBrush}"
                                                FontSize="13"
                                                TextWrapping="Wrap"
                                                LineHeight="20"
@@ -409,10 +409,10 @@
                                             <DataTemplate>
                                                 <Border Margin="0,0,8,6"
                                                         Padding="10,4"
-                                                        Background="#F0E6D6"
+                                                        Background="{DynamicResource TagBackgroundBrush}"
                                                         CornerRadius="999">
                                                     <TextBlock Text="{Binding}"
-                                                               Foreground="#8B5E3C"
+                                                               Foreground="{DynamicResource AccentBrush}"
                                                                FontSize="11"
                                                                FontWeight="SemiBold" />
                                                 </Border>

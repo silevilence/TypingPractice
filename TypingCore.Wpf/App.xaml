@@ -1,9 +1,22 @@
 ﻿<Application x:Class="TypingCore.Wpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:TypingCore.Wpf"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
-         
+        <SolidColorBrush x:Key="PaperBackgroundBrush" Color="#FAF8F5" />
+        <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#F3EFEB" />
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#8B5E3C" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#7A5234" />
+        <SolidColorBrush x:Key="TagBackgroundBrush" Color="#F0E6D6" />
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#2D2926" />
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#7A7067" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#E8E2DA" />
+        <SolidColorBrush x:Key="ErrorBrush" Color="#C75146" />
+        <SolidColorBrush x:Key="SuccessBrush" Color="#5B8C5A" />
+        <SolidColorBrush x:Key="OnAccentTextBrush" Color="#FFFFFF" />
+        <FontFamily x:Key="PracticeFontFamily">Microsoft YaHei UI</FontFamily>
+        <sys:Double x:Key="PracticeFontSize">18</sys:Double>
     </Application.Resources>
 </Application>

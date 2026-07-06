@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using TypingCore.Abstractions;
 using TypingCore.Models;
+using TypingCore.Wpf.Services;
 
 namespace TypingCore.Wpf.Views;
 
@@ -51,20 +52,14 @@ public sealed class InterleavedTypingRenderControl : FrameworkElement
         typeof(InterleavedTypingRenderControl),
         new FrameworkPropertyMetadata(0, OnCurrentTextIndexChanged));
 
-    private static readonly SolidColorBrush SurfaceBrush = CreateBrush(0xFA, 0xF8, 0xF5);
-    private static readonly SolidColorBrush SlotBrush = CreateBrush(0xFF, 0xFF, 0xFF);
-    private static readonly SolidColorBrush PrimaryTextBrush = CreateBrush(0x2D, 0x29, 0x26);
-    private static readonly SolidColorBrush SecondaryTextBrush = CreateBrush(0x7A, 0x70, 0x67);
-    private static readonly SolidColorBrush AccentBrush = CreateBrush(0x8B, 0x5E, 0x3C);
-    private static readonly SolidColorBrush AccentSoftBrush = CreateBrush(0xF0, 0xE6, 0xD6);
-    private static readonly SolidColorBrush ErrorSoftBrush = CreateBrush(0xFA, 0xE5, 0xE3);
-    private static readonly SolidColorBrush BorderBrush = CreateBrush(0xE8, 0xE2, 0xDA);
-    private static readonly SolidColorBrush ErrorBrush = CreateBrush(0xC7, 0x51, 0x46);
-    private static readonly SolidColorBrush SuccessBrush = CreateBrush(0x5B, 0x8C, 0x5A);
-    private static readonly Pen BorderPen = CreatePen(BorderBrush, 1d);
-    private static readonly Pen AccentPen = CreatePen(AccentBrush, 1.5d);
-    private static readonly Pen ErrorPen = CreatePen(ErrorBrush, 1.5d);
-    private static readonly Pen SuccessPen = CreatePen(SuccessBrush, 1.5d);
+    private static readonly SolidColorBrush FallbackCardBrush = CreateBrush(0xFF, 0xFF, 0xFF);
+    private static readonly SolidColorBrush FallbackPrimaryBrush = CreateBrush(0x2D, 0x29, 0x26);
+    private static readonly SolidColorBrush FallbackSecondaryBrush = CreateBrush(0x7A, 0x70, 0x67);
+    private static readonly SolidColorBrush FallbackAccentBrush = CreateBrush(0x8B, 0x5E, 0x3C);
+    private static readonly SolidColorBrush FallbackTagBrush = CreateBrush(0xF0, 0xE6, 0xD6);
+    private static readonly SolidColorBrush FallbackBorderBrush = CreateBrush(0xE8, 0xE2, 0xDA);
+    private static readonly SolidColorBrush FallbackErrorBrush = CreateBrush(0xC7, 0x51, 0x46);
+    private static readonly SolidColorBrush FallbackSuccessBrush = CreateBrush(0x5B, 0x8C, 0x5A);
     private static readonly Brush TransparentBrush = Brushes.Transparent;
 
     private readonly VisualCollection visuals;
@@ -84,6 +79,8 @@ public sealed class InterleavedTypingRenderControl : FrameworkElement
         visuals = new VisualCollection(this);
         SnapsToDevicePixels = true;
         UseLayoutRounding = true;
+        Loaded += HandleLoaded;
+        Unloaded += HandleUnloaded;
     }
 
     public ArticleTextLayout? ArticleLayout
@@ -232,6 +229,24 @@ public sealed class InterleavedTypingRenderControl : FrameworkElement
         return pen;
     }
 
+    private void HandleLoaded(object sender, RoutedEventArgs e)
+    {
+        ApplicationThemeManager.ThemeChanged -= HandleThemeChanged;
+        ApplicationThemeManager.ThemeChanged += HandleThemeChanged;
+    }
+
+    private void HandleUnloaded(object sender, RoutedEventArgs e)
+        => ApplicationThemeManager.ThemeChanged -= HandleThemeChanged;
+
+    private void HandleThemeChanged(object? sender, EventArgs e)
+    {
+        requiresFullRedraw = true;
+        InvalidateVisual();
+    }
+
+    private Brush GetBrush(string resourceKey, Brush fallback)
+        => ApplicationThemeManager.FindBrush(this, resourceKey, fallback);
+
     private static Rect Shrink(Rect bounds, double amount)
     {
         if (bounds.Width <= amount * 2d || bounds.Height <= amount * 2d)
@@ -269,7 +284,12 @@ public sealed class InterleavedTypingRenderControl : FrameworkElement
         using DrawingContext drawingContext = visual.RenderOpen();
 
         Rect inputLineBounds = InterleavedTypingRenderGeometry.GetInputLineBounds(line.Bounds);
-        drawingContext.DrawRoundedRectangle(SlotBrush, BorderPen, inputLineBounds, 10d, 10d);
+        drawingContext.DrawRoundedRectangle(
+            GetBrush("CardBackgroundBrush", FallbackCardBrush),
+            CreatePen(GetBrush("BorderBrush", FallbackBorderBrush), 1d),
+            inputLineBounds,
+            10d,
+            10d);
 
         foreach (InterleavedTypingRenderCell cell in line.Cells)
         {
@@ -292,24 +312,35 @@ public sealed class InterleavedTypingRenderControl : FrameworkElement
             cell.TargetBounds.Width,
             cell.InputBounds.Bottom - cell.TargetBounds.Top);
 
-        Brush targetBrush = PrimaryTextBrush;
-        Brush inputBrush = AccentBrush;
+        Brush accentBrush = GetBrush("AccentBrush", FallbackAccentBrush);
+        Brush targetBrush = GetBrush("PrimaryTextBrush", FallbackPrimaryBrush);
+        Brush inputBrush = accentBrush;
 
         TypingCharacterState state = snapshot?.State ?? TypingCharacterState.Pending;
         switch (state)
         {
             case TypingCharacterState.Current:
-                drawingContext.DrawRoundedRectangle(AccentSoftBrush, null, Shrink(combinedBounds, 2d), 10d, 10d);
-                targetBrush = AccentBrush;
+                drawingContext.DrawRoundedRectangle(
+                    GetBrush("TagBackgroundBrush", FallbackTagBrush),
+                    null,
+                    Shrink(combinedBounds, 2d),
+                    10d,
+                    10d);
+                targetBrush = accentBrush;
                 break;
             case TypingCharacterState.Correct:
-                targetBrush = SecondaryTextBrush;
-                inputBrush = SuccessBrush;
+                targetBrush = GetBrush("SecondaryTextBrush", FallbackSecondaryBrush);
+                inputBrush = GetBrush("SuccessBrush", FallbackSuccessBrush);
                 break;
             case TypingCharacterState.Incorrect:
-                targetBrush = ErrorBrush;
-                inputBrush = ErrorBrush;
-                drawingContext.DrawRoundedRectangle(ErrorSoftBrush, null, Shrink(combinedBounds, 2d), 10d, 10d);
+                targetBrush = GetBrush("ErrorBrush", FallbackErrorBrush);
+                inputBrush = targetBrush;
+                drawingContext.DrawRoundedRectangle(
+                    GetBrush("TagBackgroundBrush", FallbackTagBrush),
+                    null,
+                    Shrink(combinedBounds, 2d),
+                    10d,
+                    10d);
                 break;
         }
 
@@ -322,7 +353,12 @@ public sealed class InterleavedTypingRenderControl : FrameworkElement
 
         if (state == TypingCharacterState.Current)
         {
-            drawingContext.DrawRoundedRectangle(AccentBrush, null, InterleavedTypingRenderGeometry.GetCaretBounds(cell.InputBounds), 1d, 1d);
+            drawingContext.DrawRoundedRectangle(
+                accentBrush,
+                null,
+                InterleavedTypingRenderGeometry.GetCaretBounds(cell.InputBounds),
+                1d,
+                1d);
         }
     }
 
@@ -345,20 +381,34 @@ public sealed class InterleavedTypingRenderControl : FrameworkElement
         Rect cueBounds = InterleavedTypingRenderGeometry.GetTrailingBreakCueBounds(line.Bounds, usedContentRight);
         if (snapshot.State == TypingCharacterState.Current)
         {
-            DrawCharacterText(drawingContext, "↵", cueBounds, AccentBrush);
-            drawingContext.DrawRoundedRectangle(AccentBrush, null, InterleavedTypingRenderGeometry.GetCaretBounds(cueBounds), 1d, 1d);
+            Brush accentBrush = GetBrush("AccentBrush", FallbackAccentBrush);
+            DrawCharacterText(drawingContext, "↵", cueBounds, accentBrush);
+            drawingContext.DrawRoundedRectangle(
+                accentBrush,
+                null,
+                InterleavedTypingRenderGeometry.GetCaretBounds(cueBounds),
+                1d,
+                1d);
             return;
         }
 
         if (snapshot.State == TypingCharacterState.Incorrect && snapshot.InputChar is char inputChar)
         {
-            DrawCharacterText(drawingContext, GetDisplayText(inputChar), cueBounds, ErrorBrush);
+            DrawCharacterText(
+                drawingContext,
+                GetDisplayText(inputChar),
+                cueBounds,
+                GetBrush("ErrorBrush", FallbackErrorBrush));
             return;
         }
 
         if (snapshot.State == TypingCharacterState.Correct)
         {
-            DrawCharacterText(drawingContext, "↵", cueBounds, SecondaryTextBrush);
+            DrawCharacterText(
+                drawingContext,
+                "↵",
+                cueBounds,
+                GetBrush("SecondaryTextBrush", FallbackSecondaryBrush));
         }
     }
 
@@ -425,7 +475,7 @@ public sealed class InterleavedTypingRenderControl : FrameworkElement
             FlowDirection.LeftToRight,
             new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
             FontSize,
-            PrimaryTextBrush,
+            GetBrush("PrimaryTextBrush", FallbackPrimaryBrush),
             VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
         return InterleavedTypingRenderGeometry.GetHalfCellWidth(

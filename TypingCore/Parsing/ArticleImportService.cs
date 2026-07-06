@@ -38,7 +38,7 @@ public sealed class ArticleImportService : IArticleImportService
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         ArgumentNullException.ThrowIfNull(rawText);
 
-        ArticleTextLayout layout = layoutBuilder.Build(rawText);
+        ArticleTextLayout layout = BuildValidatedLayout(rawText);
         return new ArticleImportResult(title, layout, detectedEncodingName: null);
     }
 
@@ -49,12 +49,36 @@ public sealed class ArticleImportService : IArticleImportService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
+        long maximumFileBytes = ((long)Article.MaximumTextLength * 4) + 4;
+        if (new FileInfo(filePath).Length > maximumFileBytes)
+        {
+            throw new InvalidDataException(
+                $"文章内容不能超过 {Article.MaximumTextLength} 个字符。");
+        }
+
         byte[] fileBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
         (string rawText, string encodingName) = TextFileDecoder.Decode(fileBytes);
 
-        ArticleTextLayout layout = layoutBuilder.Build(rawText);
+        ArticleTextLayout layout = BuildValidatedLayout(rawText);
         string title = Path.GetFileNameWithoutExtension(filePath);
 
         return new ArticleImportResult(title, layout, encodingName);
+    }
+
+    private ArticleTextLayout BuildValidatedLayout(string rawText)
+    {
+        ArticleTextLayout layout = layoutBuilder.Build(rawText);
+        if (layout.NormalizedText.Length == 0)
+        {
+            throw new InvalidDataException("文章内容不能为空。");
+        }
+
+        if (layout.NormalizedText.Length > Article.MaximumTextLength)
+        {
+            throw new InvalidDataException(
+                $"文章内容不能超过 {Article.MaximumTextLength} 个字符。");
+        }
+
+        return layout;
     }
 }

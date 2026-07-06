@@ -19,14 +19,19 @@ public sealed class TypingSession : ITypingSession
     private readonly List<DateTimeOffset> committedCharacterTimestamps = new();
     private readonly Queue<DateTimeOffset> rawKeyWindowTimestamps = new();
     private readonly SessionStatisticsProvider statisticsProvider;
+    private TypingCharacterSnapshot[] characterSnapshots;
     private TypingSessionState state;
     private ITypingSessionSnapshot snapshot;
     private SessionStatistics statisticsSnapshot;
     private int totalRawKeyCount;
     private int committedBackspaceCount;
+    private int correctCharacterCount;
+    private int errorCharacterCount;
     private int pendingCompositionKeyCount;
     private DateTimeOffset? firstInputTimestamp;
     private DateTimeOffset? lastInputTimestamp;
+    private DateTimeOffset? pauseStartedAt;
+    private TimeSpan totalPausedDuration;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TypingSession"/> class.
@@ -39,7 +44,8 @@ public sealed class TypingSession : ITypingSession
         this.layout = layout;
         statisticsProvider = new SessionStatisticsProvider(this);
         state = TypingSessionState.NotStarted;
-        snapshot = BuildSnapshot();
+        characterSnapshots = BuildInitialCharacterSnapshots();
+        snapshot = BuildSnapshot(characterSnapshots);
         statisticsSnapshot = BuildStatisticsSnapshot();
     }
 
@@ -53,6 +59,11 @@ public sealed class TypingSession : ITypingSession
     public void ProcessInput(IKeyInputEvent inputEvent)
     {
         ArgumentNullException.ThrowIfNull(inputEvent);
+
+        if (state == TypingSessionState.Paused)
+        {
+            return;
+        }
 
         bool hasCommitText = !string.IsNullOrEmpty(inputEvent.ImeCommitText);
         bool isBackspace = inputEvent.IsBackspace || inputEvent.Key == KeyInputKey.Backspace;
@@ -73,46 +84,84 @@ public sealed class TypingSession : ITypingSession
             state = TypingSessionState.Running;
         }
 
-        firstInputTimestamp ??= inputEvent.Timestamp;
-        lastInputTimestamp = inputEvent.Timestamp;
+        DateTimeOffset activeTimestamp = inputEvent.Timestamp - totalPausedDuration;
+        firstInputTimestamp ??= activeTimestamp;
+        lastInputTimestamp = activeTimestamp;
+        int previousCommittedCount = committedCharacters.Count;
 
         if (!hasCommitText)
         {
             totalRawKeyCount++;
-            TrackRawKeyTimestamp(inputEvent.Timestamp);
+            TrackRawKeyTimestamp(activeTimestamp);
         }
 
         if (isBackspace)
         {
             ProcessBackspace();
-            RefreshSnapshots();
+            RefreshSnapshots(previousCommittedCount);
             return;
         }
 
         if (hasCommitText)
         {
             CommitText(inputEvent.ImeCommitText!);
-            RefreshSnapshots();
+            RefreshSnapshots(previousCommittedCount);
             return;
         }
 
         pendingCompositionKeyCount++;
-        RefreshSnapshots();
+        RefreshSnapshots(previousCommittedCount);
+    }
+
+    /// <inheritdoc />
+    public void Pause(DateTimeOffset timestamp)
+    {
+        if (state != TypingSessionState.Running)
+        {
+            return;
+        }
+
+        pauseStartedAt = timestamp;
+        state = TypingSessionState.Paused;
+        RefreshSnapshots(committedCharacters.Count);
+    }
+
+    /// <inheritdoc />
+    public void Resume(DateTimeOffset timestamp)
+    {
+        if (state != TypingSessionState.Paused)
+        {
+            return;
+        }
+
+        if (pauseStartedAt.HasValue && timestamp > pauseStartedAt.Value)
+        {
+            totalPausedDuration += timestamp - pauseStartedAt.Value;
+        }
+
+        pauseStartedAt = null;
+        state = TypingSessionState.Running;
+        RefreshSnapshots(committedCharacters.Count);
     }
 
     /// <inheritdoc />
     public void Reset()
     {
+        int previousCommittedCount = committedCharacters.Count;
         committedCharacters.Clear();
         committedCharacterTimestamps.Clear();
         rawKeyWindowTimestamps.Clear();
         totalRawKeyCount = 0;
         committedBackspaceCount = 0;
+        correctCharacterCount = 0;
+        errorCharacterCount = 0;
         pendingCompositionKeyCount = 0;
         firstInputTimestamp = null;
         lastInputTimestamp = null;
+        pauseStartedAt = null;
+        totalPausedDuration = TimeSpan.Zero;
         state = TypingSessionState.NotStarted;
-        RefreshSnapshots();
+        RefreshSnapshots(previousCommittedCount);
     }
 
     private void ProcessBackspace()
@@ -128,8 +177,18 @@ public sealed class TypingSession : ITypingSession
             return;
         }
 
+        CommittedCharacter removedCharacter = committedCharacters[^1];
         committedCharacters.RemoveAt(committedCharacters.Count - 1);
         committedCharacterTimestamps.RemoveAt(committedCharacterTimestamps.Count - 1);
+        if (removedCharacter.IsCorrect)
+        {
+            correctCharacterCount--;
+        }
+        else
+        {
+            errorCharacterCount--;
+        }
+
         committedBackspaceCount++;
         state = TypingSessionState.Running;
     }
@@ -147,8 +206,17 @@ public sealed class TypingSession : ITypingSession
 
             int textIndex = committedCharacters.Count;
             char targetChar = layout.NormalizedText[textIndex];
-            committedCharacters.Add(new CommittedCharacter(textIndex, inputChar, inputChar == targetChar));
+            bool isCorrect = inputChar == targetChar;
+            committedCharacters.Add(new CommittedCharacter(textIndex, inputChar, isCorrect));
             committedCharacterTimestamps.Add(lastInputTimestamp ?? DateTimeOffset.MinValue);
+            if (isCorrect)
+            {
+                correctCharacterCount++;
+            }
+            else
+            {
+                errorCharacterCount++;
+            }
         }
 
         if (committedCharacters.Count >= layout.NormalizedText.Length && layout.NormalizedText.Length > 0)
@@ -157,54 +225,84 @@ public sealed class TypingSession : ITypingSession
         }
     }
 
-    private void RefreshSnapshots()
+    private void RefreshSnapshots(int previousCommittedCount)
     {
-        snapshot = BuildSnapshot();
+        characterSnapshots = BuildCharacterSnapshots(previousCommittedCount);
+        snapshot = BuildSnapshot(characterSnapshots);
         statisticsSnapshot = BuildStatisticsSnapshot();
     }
 
-    private TypingSessionSnapshot BuildSnapshot()
+    private TypingCharacterSnapshot[] BuildInitialCharacterSnapshots()
     {
-        List<TypingCharacterSnapshot> characters = new(layout.NormalizedText.Length);
-        int correctCount = committedCharacters.Count(character => character.IsCorrect);
-        int errorCount = committedCharacters.Count - correctCount;
+        TypingCharacterSnapshot[] characters = new TypingCharacterSnapshot[layout.NormalizedText.Length];
 
         for (int textIndex = 0; textIndex < layout.NormalizedText.Length; textIndex++)
         {
-            if (textIndex < committedCharacters.Count)
-            {
-                CommittedCharacter committedCharacter = committedCharacters[textIndex];
-                characters.Add(new TypingCharacterSnapshot(
-                    textIndex,
-                    layout.NormalizedText[textIndex],
-                    committedCharacter.InputChar,
-                    committedCharacter.IsCorrect ? TypingCharacterState.Correct : TypingCharacterState.Incorrect));
-                continue;
-            }
-
-            TypingCharacterState characterState = textIndex == committedCharacters.Count && state != TypingSessionState.Completed
+            TypingCharacterState characterState = textIndex == 0
                 ? TypingCharacterState.Current
                 : TypingCharacterState.Pending;
 
-            characters.Add(new TypingCharacterSnapshot(
+            characters[textIndex] = new TypingCharacterSnapshot(
                 textIndex,
                 layout.NormalizedText[textIndex],
                 null,
-                characterState));
+                characterState);
         }
 
-        return new TypingSessionSnapshot(
+        return characters;
+    }
+
+    private TypingCharacterSnapshot[] BuildCharacterSnapshots(int previousCommittedCount)
+    {
+        TypingCharacterSnapshot[] characters =
+            (TypingCharacterSnapshot[])characterSnapshots.Clone();
+        int currentCommittedCount = committedCharacters.Count;
+        int startIndex = Math.Min(previousCommittedCount, currentCommittedCount);
+        int endIndex = Math.Min(
+            layout.NormalizedText.Length - 1,
+            Math.Max(previousCommittedCount, currentCommittedCount));
+
+        for (int textIndex = startIndex; textIndex <= endIndex; textIndex++)
+        {
+            char? inputChar = null;
+            TypingCharacterState characterState;
+            if (textIndex < currentCommittedCount)
+            {
+                CommittedCharacter committedCharacter = committedCharacters[textIndex];
+                inputChar = committedCharacter.InputChar;
+                characterState = committedCharacter.IsCorrect
+                    ? TypingCharacterState.Correct
+                    : TypingCharacterState.Incorrect;
+            }
+            else
+            {
+                characterState = textIndex == currentCommittedCount
+                    && state != TypingSessionState.Completed
+                        ? TypingCharacterState.Current
+                        : TypingCharacterState.Pending;
+            }
+
+            characters[textIndex] = new TypingCharacterSnapshot(
+                textIndex,
+                layout.NormalizedText[textIndex],
+                inputChar,
+                characterState);
+        }
+
+        return characters;
+    }
+
+    private TypingSessionSnapshot BuildSnapshot(TypingCharacterSnapshot[] characters)
+        => new(
             state,
             committedCharacters.Count,
-            correctCount,
-            errorCount,
+            correctCharacterCount,
+            errorCharacterCount,
             characters);
-    }
 
     private SessionStatistics BuildStatisticsSnapshot()
     {
         int committedCharacterCount = committedCharacters.Count;
-        int errorCount = committedCharacters.Count(character => !character.IsCorrect);
         TimeSpan elapsed = GetElapsed();
         double keystrokesPerMinute = GetKeystrokesPerMinute(elapsed);
         double charactersPerMinute = GetCharactersPerMinute(committedCharacterCount, elapsed);
@@ -216,7 +314,7 @@ public sealed class TypingSession : ITypingSession
             committedCharacterCount > 0 ? (double)totalRawKeyCount / committedCharacterCount : 0,
             committedBackspaceCount,
             totalRawKeyCount > 0 ? (double)committedBackspaceCount / totalRawKeyCount : 0,
-            layout.NormalizedText.Length > 0 ? (double)errorCount / layout.NormalizedText.Length : 0,
+            layout.NormalizedText.Length > 0 ? (double)errorCharacterCount / layout.NormalizedText.Length : 0,
             elapsed);
     }
 

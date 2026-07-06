@@ -11,6 +11,11 @@ namespace TypingCore.Models;
 public sealed record Article : IArticleRecord
 {
     /// <summary>
+    /// Gets the maximum supported article text length.
+    /// </summary>
+    public const int MaximumTextLength = 50_000;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Article"/> class.
     /// </summary>
     /// <param name="articleId">The unique article identifier.</param>
@@ -27,8 +32,15 @@ public sealed record Article : IArticleRecord
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(articleId);
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
-        ArgumentNullException.ThrowIfNull(rawText);
+        ArgumentException.ThrowIfNullOrWhiteSpace(rawText);
         ArgumentNullException.ThrowIfNull(tags);
+
+        if (rawText.Length > MaximumTextLength)
+        {
+            throw new ArgumentException(
+                $"文章内容不能超过 {MaximumTextLength} 个字符。",
+                nameof(rawText));
+        }
 
         ArticleId = articleId;
         Title = title;

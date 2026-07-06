@@ -24,14 +24,27 @@ public sealed record TypingSessionSnapshot : ITypingSessionSnapshot
         int correctCharacterCount,
         int errorCharacterCount,
         IEnumerable<TypingCharacterSnapshot> characters)
+        : this(
+            state,
+            currentTextIndex,
+            correctCharacterCount,
+            errorCharacterCount,
+            characters?.ToArray() ?? throw new ArgumentNullException(nameof(characters)))
     {
-        ArgumentNullException.ThrowIfNull(characters);
+    }
 
+    internal TypingSessionSnapshot(
+        TypingSessionState state,
+        int currentTextIndex,
+        int correctCharacterCount,
+        int errorCharacterCount,
+        TypingCharacterSnapshot[] characters)
+    {
         State = state;
         CurrentTextIndex = currentTextIndex;
         CorrectCharacterCount = correctCharacterCount;
         ErrorCharacterCount = errorCharacterCount;
-        Characters = characters.ToArray();
+        Characters = characters;
     }
 
     /// <inheritdoc />

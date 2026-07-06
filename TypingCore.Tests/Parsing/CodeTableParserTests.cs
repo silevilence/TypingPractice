@@ -64,4 +64,44 @@ public sealed class CodeTableParserTests
 
         Assert.Contains("第 2 行", exception.Message);
     }
+
+    [Fact]
+    public void Parse_throws_with_line_number_for_invalid_weight()
+    {
+        FormatException exception = Assert.Throws<FormatException>(() =>
+            new CodeTableParser().Parse(
+                "错误权重",
+                "memory",
+                "a\t工\theavy",
+                LoadedAt));
+
+        Assert.Contains("第 1 行", exception.Message);
+        Assert.Contains("权重", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_rejects_empty_table()
+    {
+        FormatException exception = Assert.Throws<FormatException>(() =>
+            new CodeTableParser().Parse(
+                "空码表",
+                "memory",
+                "# comments only",
+                LoadedAt));
+
+        Assert.Contains("没有可用条目", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_rejects_unclosed_yaml_header()
+    {
+        FormatException exception = Assert.Throws<FormatException>(() =>
+            new CodeTableParser().Parse(
+                "错误头",
+                "memory",
+                "---\ncharset: abc",
+                LoadedAt));
+
+        Assert.Contains("缺少结束标记", exception.Message);
+    }
 }

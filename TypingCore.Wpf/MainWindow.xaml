@@ -1,4 +1,4 @@
-﻿<Window x:Class="TypingCore.Wpf.MainWindow"
+<Window x:Class="TypingCore.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -11,7 +11,8 @@
         Height="820"
         MinWidth="1080"
         MinHeight="720"
-        Background="#FAF8F5"
+        FontFamily="{DynamicResource PracticeFontFamily}"
+        Background="{DynamicResource PaperBackgroundBrush}"
         Loaded="Window_Loaded">
     <Window.Resources>
         <DataTemplate DataType="{x:Type viewModels:ArticleLibraryViewModel}">
@@ -50,7 +51,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#4C443C" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="FontSize" Value="15" />
@@ -78,7 +79,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="NavBackground" Property="Background" Value="#F0E6D6" />
+                                <Setter TargetName="NavBackground" Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -91,8 +92,8 @@
                BasedOn="{StaticResource NavigationButtonBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsArticleLibrarySelected}" Value="True">
-                    <Setter Property="Background" Value="#8B5E3C" />
-                    <Setter Property="Foreground" Value="#FFFFFF" />
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource OnAccentTextBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -102,8 +103,8 @@
                BasedOn="{StaticResource NavigationButtonBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsSettingsSelected}" Value="True">
-                    <Setter Property="Background" Value="#8B5E3C" />
-                    <Setter Property="Foreground" Value="#FFFFFF" />
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource OnAccentTextBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -113,8 +114,8 @@
                BasedOn="{StaticResource NavigationButtonBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsHistorySelected}" Value="True">
-                    <Setter Property="Background" Value="#8B5E3C" />
-                    <Setter Property="Foreground" Value="#FFFFFF" />
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource OnAccentTextBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -124,8 +125,8 @@
                BasedOn="{StaticResource NavigationButtonBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsCodeTableManagerSelected}" Value="True">
-                    <Setter Property="Background" Value="#8B5E3C" />
-                    <Setter Property="Foreground" Value="#FFFFFF" />
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource OnAccentTextBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -138,7 +139,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- 侧边栏 -->
-        <Border Background="#F3EFEB" Padding="24,28,24,24">
+        <Border Background="{DynamicResource SidebarBackgroundBrush}" Padding="24,28,24,24">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -152,14 +153,14 @@
                     <TextBlock Text="打字练习"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                     <Border Margin="0,12,0,0"
                             Width="36" Height="3"
-                            Background="#8B5E3C"
+                            Background="{DynamicResource AccentBrush}"
                             CornerRadius="1.5" />
                     <TextBlock Margin="0,14,0,0"
                                Text="沉静练习，逐字精进"
-                               Foreground="#7A7067"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                FontSize="13" />
                 </StackPanel>
 
@@ -198,17 +199,17 @@
                 <!-- 底部说明卡片 -->
                 <Border Grid.Row="3"
                         Padding="18"
-                        Background="#F8F3EA"
+                        Background="{DynamicResource TagBackgroundBrush}"
                         CornerRadius="14">
                     <StackPanel>
                         <TextBlock Text="当前阶段"
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="#8B5E3C" />
+                                   Foreground="{DynamicResource AccentBrush}" />
                         <TextBlock Margin="0,8,0,0"
-                                   Text="可导入并切换码表，练习时会提示当前字符及后续词组编码。"
+                                   Text="主题、字体与练习快捷键可在设置页保存并即时应用。"
                                    TextWrapping="Wrap"
-                                   Foreground="#7A7067"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                    FontSize="12"
                                    LineHeight="18" />
                     </StackPanel>
@@ -224,9 +225,9 @@
             </Grid.RowDefinitions>
 
             <!-- 顶部标题栏 -->
-            <Border Background="#FFFFFF" CornerRadius="16" Padding="28,20">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="16" Padding="28,20">
                 <Border.Effect>
-                    <DropShadowEffect Color="#000000"
+                    <DropShadowEffect Color="Black"
                                       BlurRadius="16"
                                       ShadowDepth="2"
                                       Opacity="0.06"
@@ -236,10 +237,10 @@
                     <TextBlock Text="{Binding CurrentPage.DisplayName}"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2D2926" />
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
                     <TextBlock Margin="0,6,0,0"
                                Text="文章、练习与设置会在这里切换显示"
-                               Foreground="#7A7067"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                FontSize="13" />
                 </StackPanel>
             </Border>
@@ -248,10 +249,10 @@
             <Border Grid.Row="1"
                     Margin="0,18,0,0"
                     Padding="24"
-                    Background="#FFFFFF"
+                    Background="{DynamicResource CardBackgroundBrush}"
                     CornerRadius="16">
                 <Border.Effect>
-                    <DropShadowEffect Color="#000000"
+                    <DropShadowEffect Color="Black"
                                       BlurRadius="16"
                                       ShadowDepth="2"
                                       Opacity="0.06"

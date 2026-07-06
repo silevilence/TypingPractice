@@ -312,6 +312,6 @@ public sealed class ArticleLibraryViewModel : PageViewModel
             return normalized;
         }
 
-        return normalized[..56] + "...";
+        return normalized[..56] + "…";
     }
 }
