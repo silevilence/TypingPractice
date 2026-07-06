@@ -109,6 +109,9 @@ public partial class TypingPracticeView : UserControl
     private void InputSurface_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         => FocusInputSurface();
 
+    private void FollowingInputText_TargetUpdated(object sender, System.Windows.Data.DataTransferEventArgs e)
+        => FollowingInputScrollViewer.ScrollToEnd();
+
     private void FocusInputSurface()
     {
         if (ImeInputSink.IsVisible)

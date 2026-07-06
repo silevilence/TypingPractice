@@ -21,6 +21,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
     private int correctCharacterCount;
     private int currentTextIndex;
     private int errorCharacterCount;
+    private bool isInterleavedLayout = true;
     private TypingSessionState sessionState;
     private string statusMessage;
 
@@ -39,15 +40,16 @@ public sealed class TypingPracticeViewModel : PageViewModel
         this.returnToLibrary = returnToLibrary;
 
         ArticleTitle = article.Title;
-
-    ArticleLayout = articleTextLayoutBuilder.Build(article.RawText);
-    TargetText = ArticleLayout.NormalizedText;
-    session = new TypingSession(ArticleLayout);
+        ArticleLayout = articleTextLayoutBuilder.Build(article.RawText);
+        TargetText = ArticleLayout.NormalizedText;
+        session = new TypingSession(ArticleLayout);
         inputTranslator = new WindowMessageInputTranslator(systemClock);
-        statusMessage = "已进入练习页，直接开始输入即可。Esc 重练，方向键暂时只显示提示。";
+        statusMessage = "已进入练习页，直接开始输入即可。可随时切换逐字对齐或上下跟随布局。";
 
         RestartCommand = new RelayCommand(Restart);
         ReturnToLibraryCommand = new RelayCommand(() => this.returnToLibrary());
+        SelectInterleavedLayoutCommand = new RelayCommand(() => SelectLayout(true));
+        SelectFollowingLayoutCommand = new RelayCommand(() => SelectLayout(false));
 
         RefreshSessionState();
     }
@@ -108,6 +110,20 @@ public sealed class TypingPracticeViewModel : PageViewModel
 
     public bool IsCompleted => SessionState == TypingSessionState.Completed;
 
+    public bool IsInterleavedLayout
+    {
+        get => isInterleavedLayout;
+        private set
+        {
+            if (SetProperty(ref isInterleavedLayout, value))
+            {
+                OnPropertyChanged(nameof(IsFollowingLayout));
+            }
+        }
+    }
+
+    public bool IsFollowingLayout => !IsInterleavedLayout;
+
     public string ProgressText => $"{CurrentTextIndex} / {TargetText.Length}";
 
     public string StatusMessage
@@ -119,6 +135,10 @@ public sealed class TypingPracticeViewModel : PageViewModel
     public IRelayCommand RestartCommand { get; }
 
     public IRelayCommand ReturnToLibraryCommand { get; }
+
+    public IRelayCommand SelectInterleavedLayoutCommand { get; }
+
+    public IRelayCommand SelectFollowingLayoutCommand { get; }
 
     public bool HandleWindowMessage(int message, nint wParam)
     {
@@ -203,6 +223,19 @@ public sealed class TypingPracticeViewModel : PageViewModel
         inputTranslator.Reset();
         RefreshSessionState();
         StatusMessage = "已重新开始当前文章。";
+    }
+
+    private void SelectLayout(bool useInterleavedLayout)
+    {
+        if (IsInterleavedLayout == useInterleavedLayout)
+        {
+            return;
+        }
+
+        IsInterleavedLayout = useInterleavedLayout;
+        StatusMessage = useInterleavedLayout
+            ? "已切换到逐字对齐布局，当前练习进度保持不变。"
+            : "已切换到上下跟随布局，当前练习进度保持不变。";
     }
 
     private void RefreshSessionState()

@@ -82,15 +82,63 @@
             </Setter>
         </Style>
 
-        <Style x:Key="MetricCardStyle" TargetType="Border">
+        <Style x:Key="PracticeCardStyle" TargetType="Border">
             <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#E8E2DA" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="Padding" Value="18" />
-            <Setter Property="Margin" Value="0,0,14,0" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black"
+                                      BlurRadius="14"
+                                      ShadowDepth="2"
+                                      Opacity="0.06"
+                                      Direction="270" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="InterleavedLayoutButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsInterleavedLayout}" Value="True">
+                    <Setter Property="Background" Value="#F0E6D6" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FollowingLayoutButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsFollowingLayout}" Value="True">
+                    <Setter Property="Background" Value="#F0E6D6" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="InterleavedLayoutContainerStyle" TargetType="Grid">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsInterleavedLayout}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FollowingLayoutContainerStyle" TargetType="Grid">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsFollowingLayout}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
-        <Border x:Name="InputSurface"
+    <Border x:Name="InputSurface"
             Background="Transparent"
             Cursor="IBeam"
             Focusable="False"
@@ -100,32 +148,27 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Border Style="{StaticResource PanelBorderStyle}">
+            <Border Padding="18"
+                    Style="{StaticResource PanelBorderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel>
-                        <TextBlock Text="练习输入已接通"
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding ArticleTitle}"
                                    FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="#2D2926" />
-                        <TextBlock Margin="0,8,0,0"
-                                   Text="{Binding ArticleTitle}"
-                                   FontSize="24"
                                    FontWeight="Bold"
-                                   Foreground="#8B5E3C" />
-                        <TextBlock Margin="0,12,0,0"
+                                   Foreground="#2D2926" />
+                        <TextBlock Margin="0,6,0,0"
                                    Text="{Binding StatusMessage}"
                                    Foreground="#7A7067"
-                                   FontSize="13"
+                                   FontSize="12"
                                    TextWrapping="Wrap"
-                                   LineHeight="20" />
+                                   LineHeight="18" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="1"
@@ -142,90 +185,193 @@
                 </Grid>
             </Border>
 
-            <Grid Grid.Row="1" Margin="0,16,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <Border Grid.Row="1"
+                    Margin="0,12,0,0"
+                    Padding="18,12"
+                    Style="{StaticResource PanelBorderStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}">
-                    <StackPanel>
-                        <TextBlock Text="进度"
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="进度"
                                    FontSize="12"
                                    FontWeight="SemiBold"
                                    Foreground="#8B5E3C" />
-                        <TextBlock Margin="0,8,0,0"
+                        <TextBlock Margin="14,0,0,0"
                                    Text="{Binding ProgressText}"
-                                   FontSize="24"
+                                   FontSize="20"
                                    FontWeight="Bold"
                                    Foreground="#2D2926" />
                     </StackPanel>
-                </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource MetricCardStyle}">
-                    <StackPanel>
-                        <TextBlock Text="正确字数"
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="正确"
                                    FontSize="12"
                                    FontWeight="SemiBold"
                                    Foreground="#8B5E3C" />
-                        <TextBlock Margin="0,8,0,0"
+                        <TextBlock Margin="14,0,0,0"
                                    Text="{Binding CorrectCharacterCount}"
-                                   FontSize="24"
+                                   FontSize="20"
                                    FontWeight="Bold"
                                    Foreground="#2D2926" />
                     </StackPanel>
-                </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource MetricCardStyle}" Margin="0">
-                    <StackPanel>
-                        <TextBlock Text="错误字数"
+                    <StackPanel Grid.Column="2"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="错误"
                                    FontSize="12"
                                    FontWeight="SemiBold"
                                    Foreground="#8B5E3C" />
-                        <TextBlock Margin="0,8,0,0"
+                        <TextBlock Margin="14,0,0,0"
                                    Text="{Binding ErrorCharacterCount}"
-                                   FontSize="24"
+                                   FontSize="20"
                                    FontWeight="Bold"
                                    Foreground="#2D2926" />
                     </StackPanel>
-                </Border>
-            </Grid>
+                </Grid>
+            </Border>
 
-            <Border Grid.Row="2" Margin="0,16,0,0" Style="{StaticResource PanelBorderStyle}">
+            <Border Grid.Row="2"
+                    Margin="0,12,0,0"
+                    Padding="18"
+                    Style="{StaticResource PanelBorderStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="逐字对齐练习区"
-                               FontSize="15"
-                               FontWeight="SemiBold"
-                               Foreground="#2D2926" />
-                    <TextBlock Grid.Row="1"
-                               Margin="0,10,0,0"
-                               Text="上行显示原文，下行显示已上屏内容；当前字符会高亮，错误输入直接标红。"
-                               Foreground="#7A7067"
-                               FontSize="13"
-                               TextWrapping="Wrap"
-                               LineHeight="22" />
-                    <Grid Grid.Row="2" Margin="0,14,0,0">
-                        <ScrollViewer x:Name="PracticeScrollViewer"
-                                      Focusable="False"
-                                      VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled"
-                                      CanContentScroll="False"
-                                      VerticalAlignment="Stretch">
-                            <views:InterleavedTypingRenderControl MinHeight="220"
-                                                                  HorizontalAlignment="Stretch"
-                                                                  VerticalAlignment="Top"
-                                                                  ArticleLayout="{Binding ArticleLayout}"
-                                                                  CharacterSnapshots="{Binding CharacterSnapshots}"
-                                                                  CurrentTextIndex="{Binding CurrentTextIndex}"
-                                                                  FontSize="18" />
-                        </ScrollViewer>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="练习布局"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Foreground="#2D2926" />
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Margin="0,0,10,0"
+                                    Command="{Binding SelectInterleavedLayoutCommand}"
+                                    Style="{StaticResource InterleavedLayoutButtonStyle}"
+                                    Content="布局 A · 逐字对齐" />
+                            <Button Command="{Binding SelectFollowingLayoutCommand}"
+                                    Style="{StaticResource FollowingLayoutButtonStyle}"
+                                    Content="布局 B · 上下跟随" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="0,12,0,0">
+                        <Grid Style="{StaticResource InterleavedLayoutContainerStyle}">
+                            <ScrollViewer x:Name="PracticeScrollViewer"
+                                          Focusable="False"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          CanContentScroll="False"
+                                          VerticalAlignment="Stretch">
+                                <views:InterleavedTypingRenderControl MinHeight="220"
+                                                                      HorizontalAlignment="Stretch"
+                                                                      VerticalAlignment="Top"
+                                                                      ArticleLayout="{Binding ArticleLayout}"
+                                                                      CharacterSnapshots="{Binding CharacterSnapshots}"
+                                                                      CurrentTextIndex="{Binding CurrentTextIndex}"
+                                                                      FontSize="18" />
+                            </ScrollViewer>
+                        </Grid>
+
+                        <Grid Style="{StaticResource FollowingLayoutContainerStyle}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="14" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border Style="{StaticResource PracticeCardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="原文跟随"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="#2D2926" />
+                                    <ScrollViewer x:Name="FollowingTargetScrollViewer"
+                                                  Grid.Row="1"
+                                                  Margin="0,12,0,0"
+                                                  Focusable="False"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <views:FollowingTypingTextBlock CharacterSnapshots="{Binding CharacterSnapshots}"
+                                                                        FontSize="18"
+                                                                        LineHeight="27"
+                                                                        TextWrapping="Wrap" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="2" Style="{StaticResource PracticeCardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="自由输入"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="#2D2926" />
+                                    <ScrollViewer x:Name="FollowingInputScrollViewer"
+                                                  Grid.Row="1"
+                                                  Margin="0,12,0,0"
+                                                  Focusable="False"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <Grid>
+                                            <TextBlock Text="{Binding CommittedText, NotifyOnTargetUpdated=True}"
+                                                       TargetUpdated="FollowingInputText_TargetUpdated"
+                                                       MinHeight="54"
+                                                       FontSize="18"
+                                                       LineHeight="27"
+                                                       Foreground="#2D2926"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock IsHitTestVisible="False"
+                                                       Text="已上屏内容会在这里连续展示"
+                                                       FontSize="14"
+                                                       Foreground="#7A7067">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding CommittedText}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
                         <TextBox x:Name="ImeInputSink"
                                  Width="1"
                                  Height="1"
@@ -248,20 +394,6 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="3" Margin="0,16,0,0" Style="{StaticResource PanelBorderStyle}">
-                <StackPanel>
-                    <TextBlock Text="输入说明"
-                               FontSize="15"
-                               FontWeight="SemiBold"
-                               Foreground="#2D2926" />
-                    <TextBlock Margin="0,10,0,0"
-                               Text="本页会直接监听窗口键盘消息和输入法上屏内容。切到这里后可直接输入；Backspace 删除已上屏字符，Esc 重新开始，方向键暂时只显示提示。"
-                               Foreground="#7A7067"
-                               FontSize="13"
-                               TextWrapping="Wrap"
-                               LineHeight="22" />
-                </StackPanel>
-            </Border>
         </Grid>
     </Border>
 </UserControl>
