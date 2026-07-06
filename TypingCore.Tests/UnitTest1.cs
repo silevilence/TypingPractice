@@ -11,6 +11,8 @@ public class CoreAbstractionsContractTests
     [InlineData("TypingCore.Abstractions.ITypingSession")]
     [InlineData("TypingCore.Abstractions.IStatisticsProvider")]
     [InlineData("TypingCore.Abstractions.ICodeTableProvider")]
+    [InlineData("TypingCore.Abstractions.ICodeTableParser")]
+    [InlineData("TypingCore.Abstractions.ICodeTableRepository")]
     [InlineData("TypingCore.Abstractions.IArticleRepository")]
     [InlineData("TypingCore.Abstractions.ISessionRepository")]
     [InlineData("TypingCore.Abstractions.ITypingSessionSnapshot")]

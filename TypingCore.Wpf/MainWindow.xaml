@@ -20,6 +20,9 @@
         <DataTemplate DataType="{x:Type viewModels:SettingsViewModel}">
             <views:SettingsView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:CodeTableManagerViewModel}">
+            <views:CodeTableManagerView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:TypingPracticeViewModel}">
             <views:TypingPracticeView />
         </DataTemplate>
@@ -36,6 +39,8 @@
         <Geometry x:Key="GearIcon">M12 8 C9.79 8 8 9.79 8 12 C8 14.21 9.79 16 12 16 C14.21 16 16 14.21 16 12 C16 9.79 14.21 8 12 8 Z M19.43 12.98 C19.47 12.66 19.5 12.33 19.5 12 C19.5 11.67 19.47 11.34 19.43 11.02 L21.54 9.37 C21.73 9.22 21.78 8.95 21.66 8.73 L19.66 5.27 C19.54 5.05 19.27 4.96 19.05 5.05 L16.56 6.05 C16.04 5.65 15.48 5.32 14.87 5.07 L14.49 2.4 C14.46 2.17 14.26 2 14.03 2 L10.03 2 C9.79 2 9.59 2.17 9.56 2.4 L9.18 5.07 C8.57 5.32 8.01 5.66 7.49 6.05 L5 5.05 C4.77 4.96 4.5 5.05 4.38 5.27 L2.38 8.73 C2.25 8.95 2.31 9.22 2.5 9.37 L4.61 11.02 C4.57 11.34 4.54 11.67 4.54 12 C4.54 12.33 4.57 12.66 4.61 12.98 L2.5 14.63 C2.31 14.78 2.26 15.05 2.38 15.27 L4.38 18.73 C4.5 18.95 4.77 19.04 5 18.95 L7.49 17.95 C8.01 18.35 8.57 18.68 9.18 18.93 L9.56 21.6 C9.59 21.83 9.79 22 10.03 22 L14.03 22 C14.26 22 14.46 21.83 14.49 21.6 L14.87 18.93 C15.48 18.68 16.04 18.34 16.56 17.95 L19.05 18.95 C19.27 19.04 19.54 18.95 19.66 18.73 L21.66 15.27 C21.78 15.05 21.73 14.78 21.54 14.63 Z</Geometry>
         <!-- 趋势图图标（历史记录） -->
         <Geometry x:Key="HistoryIcon">M4 19 L4 5 M4 19 L20 19 M7 15 L11 11 L14 14 L20 7</Geometry>
+        <!-- 码表图标 -->
+        <Geometry x:Key="CodeTableIcon">M4 4 L20 4 L20 20 L4 20 Z M4 9 L20 9 M9 4 L9 20 M14 4 L14 20</Geometry>
 
         <!-- 导航按钮基础样式 -->
         <Style x:Key="NavigationButtonBase" TargetType="Button">
@@ -113,6 +118,17 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="CodeTableNavigationButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource NavigationButtonBase}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsCodeTableManagerSelected}" Value="True">
+                    <Setter Property="Background" Value="#8B5E3C" />
+                    <Setter Property="Foreground" Value="#FFFFFF" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -156,6 +172,13 @@
                         </Button.Content>
                         <Button.Tag>文章库</Button.Tag>
                     </Button>
+                    <Button Command="{Binding ShowCodeTableManagerCommand}"
+                            Style="{StaticResource CodeTableNavigationButtonStyle}">
+                        <Button.Content>
+                            <StaticResource ResourceKey="CodeTableIcon" />
+                        </Button.Content>
+                        <Button.Tag>码表管理</Button.Tag>
+                    </Button>
                     <Button Command="{Binding ShowSettingsCommand}"
                             Style="{StaticResource SettingsNavigationButtonStyle}">
                         <Button.Content>
@@ -183,7 +206,7 @@
                                    FontWeight="SemiBold"
                                    Foreground="#8B5E3C" />
                         <TextBlock Margin="0,8,0,0"
-                                   Text="练习过程实时统计，完成后自动保存结果，可按文章回看历史趋势。"
+                                   Text="可导入并切换码表，练习时会提示当前字符及后续词组编码。"
                                    TextWrapping="Wrap"
                                    Foreground="#7A7067"
                                    FontSize="12"

@@ -14,6 +14,8 @@ public sealed class MainViewModel : ObservableObject
 {
     private readonly ArticleLibraryViewModel articleLibrary;
     private readonly IArticleTextLayoutBuilder articleTextLayoutBuilder;
+    private readonly CodeTableManagerViewModel? codeTableManager;
+    private readonly ICodeTableProvider? codeTableProvider;
     private readonly HistoryViewModel history;
     private readonly ISessionRepository sessionRepository;
     private readonly SettingsViewModel settings;
@@ -26,7 +28,9 @@ public sealed class MainViewModel : ObservableObject
         SettingsViewModel settings,
         IArticleTextLayoutBuilder articleTextLayoutBuilder,
         ISystemClock systemClock,
-        ISessionRepository sessionRepository)
+        ISessionRepository sessionRepository,
+        CodeTableManagerViewModel? codeTableManager = null,
+        ICodeTableProvider? codeTableProvider = null)
     {
         ArgumentNullException.ThrowIfNull(articleLibrary);
         ArgumentNullException.ThrowIfNull(history);
@@ -37,6 +41,8 @@ public sealed class MainViewModel : ObservableObject
 
         this.articleLibrary = articleLibrary;
         this.articleTextLayoutBuilder = articleTextLayoutBuilder;
+        this.codeTableManager = codeTableManager;
+        this.codeTableProvider = codeTableProvider;
         this.history = history;
         this.sessionRepository = sessionRepository;
         this.settings = settings;
@@ -44,6 +50,7 @@ public sealed class MainViewModel : ObservableObject
         currentPage = articleLibrary;
 
         ShowArticleLibraryCommand = new RelayCommand(ShowArticleLibrary);
+        ShowCodeTableManagerCommand = new RelayCommand(ShowCodeTableManager);
         ShowHistoryCommand = new AsyncRelayCommand(() => ShowHistoryAsync());
         ShowSettingsCommand = new RelayCommand(ShowSettings);
         articleLibrary.PracticeRequested += HandlePracticeRequested;
@@ -57,6 +64,7 @@ public sealed class MainViewModel : ObservableObject
             if (SetProperty(ref currentPage, value))
             {
                 OnPropertyChanged(nameof(IsArticleLibrarySelected));
+                OnPropertyChanged(nameof(IsCodeTableManagerSelected));
                 OnPropertyChanged(nameof(IsHistorySelected));
                 OnPropertyChanged(nameof(IsSettingsSelected));
             }
@@ -65,19 +73,38 @@ public sealed class MainViewModel : ObservableObject
 
     public bool IsArticleLibrarySelected => ReferenceEquals(CurrentPage, articleLibrary);
 
+    public bool IsCodeTableManagerSelected => ReferenceEquals(CurrentPage, codeTableManager);
+
     public bool IsHistorySelected => ReferenceEquals(CurrentPage, history);
 
     public bool IsSettingsSelected => ReferenceEquals(CurrentPage, settings);
 
     public IRelayCommand ShowArticleLibraryCommand { get; }
 
+    public IRelayCommand ShowCodeTableManagerCommand { get; }
+
     public IAsyncRelayCommand ShowHistoryCommand { get; }
 
     public IRelayCommand ShowSettingsCommand { get; }
 
-    public Task InitializeAsync() => articleLibrary.LoadAsync();
+    public async Task InitializeAsync()
+    {
+        await articleLibrary.LoadAsync();
+        if (codeTableManager is not null)
+        {
+            await codeTableManager.LoadAsync();
+        }
+    }
 
     private void ShowArticleLibrary() => CurrentPage = articleLibrary;
+
+    private void ShowCodeTableManager()
+    {
+        if (codeTableManager is not null)
+        {
+            CurrentPage = codeTableManager;
+        }
+    }
 
     private void ShowSettings() => CurrentPage = settings;
 
@@ -99,7 +126,8 @@ public sealed class MainViewModel : ObservableObject
                 {
                     ShowResult(completedArticle, statistics, errorCharacterCount);
                 }
-            });
+            },
+            codeTableProvider);
         CurrentPage = practice;
     }
 

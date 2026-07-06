@@ -15,6 +15,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
 {
     private readonly IArticleRecord article;
     private readonly Action<IArticleRecord, IStatisticsSnapshot, int>? completionCallback;
+    private readonly ICodeTableProvider? codeTableProvider;
     private readonly WindowMessageInputTranslator inputTranslator;
     private readonly Action returnToLibrary;
     private readonly ITypingSession session;
@@ -22,6 +23,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
     private readonly ISystemClock systemClock;
     private double averageCodeLength;
     private IReadOnlyList<TypingCharacterSnapshot> characterSnapshots = [];
+    private IReadOnlyList<ICodeLookupResult> codeHints = [];
     private double charactersPerMinute;
     private string committedText = string.Empty;
     private int correctCharacterCount;
@@ -30,6 +32,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
     private int errorCharacterCount;
     private bool isCompletionHandled;
     private bool isInterleavedLayout = true;
+    private bool isRestartConfirmationVisible;
     private double keystrokesPerMinute;
     private string sessionId = Guid.NewGuid().ToString("N");
     private DateTimeOffset? sessionStartedAt;
@@ -42,7 +45,8 @@ public sealed class TypingPracticeViewModel : PageViewModel
         ISystemClock systemClock,
         Action returnToLibrary,
         ISessionRepository? sessionRepository = null,
-        Action<IArticleRecord, IStatisticsSnapshot, int>? completionCallback = null)
+        Action<IArticleRecord, IStatisticsSnapshot, int>? completionCallback = null,
+        ICodeTableProvider? codeTableProvider = null)
         : base("开始练习")
     {
         ArgumentNullException.ThrowIfNull(article);
@@ -51,6 +55,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
         ArgumentNullException.ThrowIfNull(returnToLibrary);
 
         this.article = article;
+        this.codeTableProvider = codeTableProvider;
         this.completionCallback = completionCallback;
         this.returnToLibrary = returnToLibrary;
         this.sessionRepository = sessionRepository;
@@ -63,7 +68,9 @@ public sealed class TypingPracticeViewModel : PageViewModel
         inputTranslator = new WindowMessageInputTranslator(systemClock);
         statusMessage = "已进入练习页，直接开始输入即可。可随时切换逐字对齐或上下跟随布局。";
 
-        RestartCommand = new RelayCommand(Restart);
+        RestartCommand = new RelayCommand(RequestRestart);
+        ConfirmRestartCommand = new RelayCommand(Restart);
+        CancelRestartCommand = new RelayCommand(CancelRestart);
         ReturnToLibraryCommand = new RelayCommand(ReturnToLibrary);
         SelectInterleavedLayoutCommand = new RelayCommand(() => SelectLayout(true));
         SelectFollowingLayoutCommand = new RelayCommand(() => SelectLayout(false));
@@ -76,6 +83,20 @@ public sealed class TypingPracticeViewModel : PageViewModel
     public ArticleTextLayout ArticleLayout { get; }
 
     public string TargetText { get; }
+
+    public IReadOnlyList<ICodeLookupResult> CodeHints
+    {
+        get => codeHints;
+        private set
+        {
+            if (SetProperty(ref codeHints, value))
+            {
+                OnPropertyChanged(nameof(HasCodeHints));
+            }
+        }
+    }
+
+    public bool HasCodeHints => CodeHints.Count > 0;
 
     public IReadOnlyList<TypingCharacterSnapshot> CharacterSnapshots
     {
@@ -159,6 +180,12 @@ public sealed class TypingPracticeViewModel : PageViewModel
 
     public bool IsFollowingLayout => !IsInterleavedLayout;
 
+    public bool IsRestartConfirmationVisible
+    {
+        get => isRestartConfirmationVisible;
+        private set => SetProperty(ref isRestartConfirmationVisible, value);
+    }
+
     public string ProgressText => $"{CurrentTextIndex} / {TargetText.Length}";
 
     public string StatusMessage
@@ -170,6 +197,10 @@ public sealed class TypingPracticeViewModel : PageViewModel
     public Task CompletionTask { get; private set; } = Task.CompletedTask;
 
     public IRelayCommand RestartCommand { get; }
+
+    public IRelayCommand ConfirmRestartCommand { get; }
+
+    public IRelayCommand CancelRestartCommand { get; }
 
     public IRelayCommand ReturnToLibraryCommand { get; }
 
@@ -203,11 +234,27 @@ public sealed class TypingPracticeViewModel : PageViewModel
 
     private bool HandleNormalizedInput(IKeyInputEvent inputEvent)
     {
+        if (inputEvent.Key == KeyInputKey.Escape)
+        {
+            if (IsRestartConfirmationVisible)
+            {
+                CancelRestart();
+            }
+            else
+            {
+                RequestRestart();
+            }
+
+            return true;
+        }
+
+        if (IsRestartConfirmationVisible)
+        {
+            return true;
+        }
+
         switch (inputEvent.Key)
         {
-            case KeyInputKey.Escape:
-                Restart();
-                return true;
             case KeyInputKey.LeftArrow:
             case KeyInputKey.RightArrow:
             case KeyInputKey.UpArrow:
@@ -281,6 +328,7 @@ public sealed class TypingPracticeViewModel : PageViewModel
 
     private void Restart()
     {
+        IsRestartConfirmationVisible = false;
         session.Reset();
         inputTranslator.Reset();
         isCompletionHandled = false;
@@ -290,6 +338,18 @@ public sealed class TypingPracticeViewModel : PageViewModel
         CompletionTask = Task.CompletedTask;
         RefreshSessionState();
         StatusMessage = "已重新开始当前文章。";
+    }
+
+    private void RequestRestart()
+    {
+        IsRestartConfirmationVisible = true;
+        StatusMessage = "请确认是否重新开始当前文章。";
+    }
+
+    private void CancelRestart()
+    {
+        IsRestartConfirmationVisible = false;
+        StatusMessage = "已取消重新开始。";
     }
 
     private void ReturnToLibrary()
@@ -328,6 +388,12 @@ public sealed class TypingPracticeViewModel : PageViewModel
             .Select(character => character.InputChar ?? '\0')
             .Where(character => character != '\0')
             .ToArray());
+        CodeHints = codeTableProvider is null
+            || IsCompleted
+            || CurrentTextIndex < 0
+            || CurrentTextIndex >= TargetText.Length
+                ? []
+                : codeTableProvider.Lookup(TargetText[CurrentTextIndex..], 3);
     }
 
     private async Task SaveCompletedSessionAsync(

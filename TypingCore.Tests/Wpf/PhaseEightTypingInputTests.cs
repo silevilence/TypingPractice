@@ -83,7 +83,7 @@ public sealed class PhaseEightTypingInputTests
     }
 
     [Fact]
-    public void TypingPracticeViewModel_uses_special_keys_for_backspace_escape_and_arrow_hints()
+    public void TypingPracticeViewModel_uses_special_keys_and_requires_explicit_restart_confirmation()
     {
         MutableSystemClock clock = new(new DateTimeOffset(2026, 7, 3, 13, 30, 0, TimeSpan.Zero));
         TypingPracticeViewModel viewModel = CreatePracticeViewModel("ab", clock);
@@ -113,6 +113,26 @@ public sealed class PhaseEightTypingInputTests
         bool handledEscape = viewModel.HandleWindowMessage(WmKeyDown, (nint)VkEscape);
 
         Assert.True(handledEscape);
+        Assert.True(viewModel.IsRestartConfirmationVisible);
+        Assert.Equal("a", viewModel.CommittedText);
+        Assert.Equal(1, viewModel.CurrentTextIndex);
+
+        bool handledRepeatedEscape = viewModel.HandleWindowMessage(WmKeyDown, (nint)VkEscape);
+
+        Assert.True(handledRepeatedEscape);
+        Assert.False(viewModel.IsRestartConfirmationVisible);
+        Assert.Equal(1, viewModel.CurrentTextIndex);
+
+        viewModel.RestartCommand.Execute(null);
+        Assert.True(viewModel.IsRestartConfirmationVisible);
+
+        bool ignoredText = viewModel.HandleTextInput("b");
+        Assert.True(ignoredText);
+        Assert.Equal(1, viewModel.CurrentTextIndex);
+
+        viewModel.ConfirmRestartCommand.Execute(null);
+
+        Assert.False(viewModel.IsRestartConfirmationVisible);
         Assert.Equal(string.Empty, viewModel.CommittedText);
         Assert.Equal(0, viewModel.CurrentTextIndex);
         Assert.Contains("重新开始", viewModel.StatusMessage);
@@ -261,6 +281,8 @@ public sealed class PhaseEightTypingInputTests
     private sealed class FakeFileDialogService : IFileDialogService
     {
         public string? SelectArticleFile() => null;
+
+        public string? SelectCodeTableFile() => null;
     }
 
     private sealed class FakeClipboardService : IClipboardService

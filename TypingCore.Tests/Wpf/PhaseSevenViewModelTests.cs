@@ -293,6 +293,8 @@ public sealed class PhaseSevenViewModelTests
         public string? FilePath { get; set; }
 
         public string? SelectArticleFile() => FilePath;
+
+        public string? SelectCodeTableFile() => null;
     }
 
     private sealed class FakeClipboardService : IClipboardService

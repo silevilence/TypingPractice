@@ -10,4 +10,10 @@ public interface IFileDialogService
     /// </summary>
     /// <returns>The selected file path, or <see langword="null"/> when the dialog is cancelled.</returns>
     string? SelectArticleFile();
+
+    /// <summary>
+    /// Prompts the user to select a text code-table file.
+    /// </summary>
+    /// <returns>The selected file path, or <see langword="null"/> when the dialog is cancelled.</returns>
+    string? SelectCodeTableFile();
 }

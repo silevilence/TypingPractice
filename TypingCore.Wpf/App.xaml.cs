@@ -2,6 +2,7 @@
 using System.Text;
 using System.Windows;
 using TypingCore.Abstractions;
+using TypingCore.Engine;
 using TypingCore.Parsing;
 using TypingCore.Persistence;
 using TypingCore.Wpf.Services;
@@ -40,6 +41,11 @@ public partial class App : Application
 		IFileDialogService fileDialogService = new FileDialogService();
 		IClipboardService clipboardService = new ClipboardService();
 		ISystemClock systemClock = new SystemClock();
+		ICodeTableParser codeTableParser = new CodeTableParser();
+		ICodeTableRepository codeTableRepository = new FileCodeTableRepository(
+			Path.Combine(appDataDirectory, "CodeTables"),
+			codeTableParser);
+		CodeTableProvider codeTableProvider = new();
 
 		ArticleLibraryViewModel articleLibrary = new(
 			articleRepository,
@@ -49,13 +55,20 @@ public partial class App : Application
 			systemClock);
 		HistoryViewModel history = new(articleRepository, sessionRepository);
 		SettingsViewModel settings = new();
+		CodeTableManagerViewModel codeTableManager = new(
+			codeTableRepository,
+			codeTableProvider,
+			fileDialogService,
+			systemClock);
 		MainViewModel mainViewModel = new(
 			articleLibrary,
 			history,
 			settings,
 			articleTextLayoutBuilder,
 			systemClock,
-			sessionRepository);
+			sessionRepository,
+			codeTableManager,
+			codeTableProvider);
 
 		return new MainWindow(mainViewModel);
 	}
