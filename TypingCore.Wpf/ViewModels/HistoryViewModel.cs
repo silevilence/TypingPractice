@@ -220,7 +220,7 @@ public sealed class HistoryViewModel : PageViewModel
     private void BuildCharts(IReadOnlyList<ISessionRecord> sessions)
     {
         string[] labels = sessions
-            .Select(session => session.StartedAt.LocalDateTime.ToString("MM-dd HH:mm"))
+            .Select(session => session.StartedAt.DateTime.ToString("MM-dd HH:mm"))
             .ToArray();
         double[] speedValues = sessions
             .Select(session => session.Statistics!.CharactersPerMinute)
@@ -300,7 +300,7 @@ public sealed class HistoryRecordViewModel
         IStatisticsSnapshot statistics = session.Statistics
             ?? throw new ArgumentException("A completed history row requires statistics.", nameof(session));
 
-        StartedAtText = session.StartedAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm");
+        StartedAtText = session.StartedAt.DateTime.ToString("yyyy-MM-dd HH:mm");
         CharactersPerMinute = statistics.CharactersPerMinute;
         KeystrokesPerMinute = statistics.KeystrokesPerMinute;
         AverageCodeLength = statistics.AverageCodeLength;
