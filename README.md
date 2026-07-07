@@ -55,9 +55,11 @@ dotnet publish TypingCore.Wpf -c Release -r win-x64 --self-contained true -o art
 dotnet tool run vpk pack --packId TypingPractice --packVersion 0.1.0 --packDir artifacts/publish --mainExe TypingPractice.exe --channel win
 ```
 
-版本 tag 采用 `v<major>.<minor>.<patch>`，例如 `v1.0.0`。推送匹配 tag 后，
-GitHub Actions 会构建、测试、打包并创建 GitHub Release，上传 `Releases/`
-目录中的安装包、更新包和 `RELEASES` 索引文件。
+版本 tag 采用 `v<major>.<minor>.<patch>` 或 `V<major>.<minor>.<patch>`，
+例如 `v0.1.0` / `V0.1.0`。每个版本必须在 `changelog.md` 增加同名或同版本号的
+`##` 二级标题。推送匹配 tag 后，GitHub Actions 会构建、测试、打包并创建
+GitHub Release，上传 `Releases/` 目录中的安装包、更新包和 `RELEASES` 索引文件。
+Release 说明来自对应的 changelog 小节。
 
 ## 测试
 
