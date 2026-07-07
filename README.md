@@ -51,7 +51,7 @@ dotnet publish TypingCore.Wpf -c Release -r win-x64 --self-contained true
 # 本地生成 Velopack 安装包与更新包
 dotnet tool restore
 dotnet publish TypingCore.Wpf -c Release -r win-x64 --self-contained true -o artifacts/publish
-dotnet tool run vpk pack --packId TypingPractice --packVersion 1.0.0 --packDir artifacts/publish --mainExe TypingPractice.exe --channel win
+dotnet tool run vpk pack --packId TypingPractice --packVersion 0.1.0 --packDir artifacts/publish --mainExe TypingPractice.exe --channel win
 ```
 
 版本 tag 采用 `v<major>.<minor>.<patch>`，例如 `v1.0.0`。推送匹配 tag 后，
