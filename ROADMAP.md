@@ -4,35 +4,6 @@
 
 ## 🚧 开发中
 
-- [ ] **阶段十五：打包与发布（Velopack + GitHub Release + GitHub Actions）**
-    - [ ] 本地打包基础配置
-        - [ ] 配置 `dotnet publish` 自包含发布参数（`-r win-x64 --self-contained`）
-        - [ ] 启用裁剪（`PublishTrimmed`）优化体积
-        - [ ] 制作应用图标与版本信息（`AssemblyInfo` / csproj 中的版本号字段）
-    - [ ] 集成 Velopack
-        - [ ] 安装 `vpk` CLI 工具（`dotnet tool install -g vpk`）
-        - [ ] 项目引入 `Velopack` NuGet 包，初始化 `VelopackApp.Build().Run()` 启动钩子
-        - [ ] 本地验证打包命令（`vpk pack` 生成安装包与全量/增量更新包）
-        - [ ] 验证自动更新流程（`UpdateManager` 检查更新、下载、应用重启）
-    - [ ] 连接 Velopack 与 GitHub Release
-        - [ ] 配置 `vpk` 的 GitHub 发布参数（仓库地址、Release 资产上传）
-        - [ ] 生成 GitHub Personal Access Token（或使用 Actions 内置 `GITHUB_TOKEN`）并配置好所需权限范围
-        - [ ] 本地手动执行一次 `vpk upload github` 验证发布链路可用
-    - [ ] 版本号规范与 Tag 约定
-        - [ ] 确定版本号规则（如语义化版本 `v1.0.0`）
-        - [ ] 确定 Tag 命名格式与项目内版本号的对应关系
-    - [ ] 编写 GitHub Actions 工作流
-        - [ ] 创建 `.github/workflows/release.yml`
-        - [ ] 配置触发条件：监听匹配版本号规则的 tag 推送（如 `v*.*.*`）
-        - [ ] 配置构建步骤：checkout 代码、安装 .NET SDK、还原依赖
-        - [ ] 配置发布步骤：`dotnet publish` → 安装/调用 `vpk` → 打包生成安装包与更新包
-        - [ ] 配置自动创建 GitHub Release 并上传构建产物（安装包、更新包、`RELEASES` 索引文件）
-        - [ ] Release 说明内容生成方式确定（后续再定具体模板，如自动生成 changelog 或手动填写）
-    - [ ] 端到端验证
-        - [ ] 推送测试 tag，验证 Actions 自动触发、构建、发布全流程
-        - [ ] 验证已安装客户端能通过 Velopack 自动检测并升级到新发布的版本
-    - [ ] 编写用户使用说明文档（下载安装、更新机制说明）
-
 ## ✅ 已完成
 
 - [x] **阶段一：项目初始化与架构搭建**
@@ -179,3 +150,32 @@
     - [x] 端到端手动测试（真实输入法环境下多轮测试）
     - [x] 性能测试（长文章、高频按键下的渲染与统计性能）
     - [x] 异常处理与边界情况修复（空文章、超长文章、码表格式错误等）
+
+- [x] **阶段十五：打包与发布（Velopack + GitHub Release + GitHub Actions）**
+    - [x] 本地打包基础配置
+        - [x] 配置 `dotnet publish` 自包含发布参数（`-r win-x64 --self-contained`）
+        - [x] 启用裁剪（`PublishTrimmed`）优化体积
+        - [x] 制作应用图标与版本信息（`AssemblyInfo` / csproj 中的版本号字段）
+    - [x] 集成 Velopack
+        - [x] 安装 `vpk` CLI 工具（`dotnet tool install -g vpk`）
+        - [x] 项目引入 `Velopack` NuGet 包，初始化 `VelopackApp.Build().Run()` 启动钩子
+        - [x] 本地验证打包命令（`vpk pack` 生成安装包与全量/增量更新包）
+        - [x] 验证自动更新流程（`UpdateManager` 检查更新、下载、应用重启）
+    - [x] 连接 Velopack 与 GitHub Release
+        - [x] 配置 `vpk` 的 GitHub 发布参数（仓库地址、Release 资产上传）
+        - [x] 生成 GitHub Personal Access Token（或使用 Actions 内置 `GITHUB_TOKEN`）并配置好所需权限范围
+        - [x] 本地手动执行一次 `vpk upload github` 验证发布链路可用
+    - [x] 版本号规范与 Tag 约定
+        - [x] 确定版本号规则（如语义化版本 `v1.0.0`）
+        - [x] 确定 Tag 命名格式与项目内版本号的对应关系
+    - [x] 编写 GitHub Actions 工作流
+        - [x] 创建 `.github/workflows/release.yml`
+        - [x] 配置触发条件：监听匹配版本号规则的 tag 推送（如 `v*.*.*`）
+        - [x] 配置构建步骤：checkout 代码、安装 .NET SDK、还原依赖
+        - [x] 配置发布步骤：`dotnet publish` → 安装/调用 `vpk` → 打包生成安装包与更新包
+        - [x] 配置自动创建 GitHub Release 并上传构建产物（安装包、更新包、`RELEASES` 索引文件）
+        - [x] Release 说明内容生成方式确定（后续再定具体模板，如自动生成 changelog 或手动填写）
+    - [x] 端到端验证
+        - [x] 推送测试 tag，验证 Actions 自动触发、构建、发布全流程
+        - [x] 验证已安装客户端能通过 Velopack 自动检测并升级到新发布的版本
+    - [x] 编写用户使用说明文档（下载安装、更新机制说明）

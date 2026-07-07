@@ -8,20 +8,23 @@
 
 - **项目名称**：打字练习软件（类极速跟打器）
 - **目标平台**：仅 Windows（暂不考虑其他平台，但架构须为跨平台预留接口）
-- **技术栈**：C# 12 / .NET 8.0，前端 WPF，数据库 SQLite（Microsoft.Data.Sqlite 8.0.0）
+- **技术栈**：C# 12 / .NET 8.0，前端 WPF，数据库 SQLite（Microsoft.Data.Sqlite 8.0.0），MVVM（CommunityToolkit.Mvvm 8.2.2），图表（LiveCharts2 2.0.4），打包（Velopack 1.2.0）
 - **测试框架**：xUnit 2.5.3 + Microsoft.NET.Test.Sdk 17.8.0 + coverlet.collector 6.0.0
 - **架构分层**：
   - `TypingCore`：平台无关的核心类库（文章解析、打字状态机、统计计算、码表反查、数据访问）
-    - `Abstractions/`：跨平台接口定义（`ITypingSession`、`IKeyInputEvent`、`IStatisticsProvider` 等）
-    - `Engine/`：打字比对状态机（`TypingSession`）与统计计算
-    - `Models/`：不可变数据模型（`Article`、`SessionStatistics`、`KeyInputEvent` 等，均为 `record` 类型）
-    - `Parsing/`：文章导入与文本规范化（`ArticleImportService`、`ArticleTextLayoutBuilder`）
-    - `Persistence/`：SQLite 数据访问（`SqliteArticleRepository`、`SqliteSessionRepository`）
+    - `Abstractions/`：跨平台接口定义（`ITypingSession`、`IKeyInputEvent`、`IStatisticsProvider`、`ICodeTableProvider`、`ICodeTableRepository`、`IUserPreferencesRepository` 等）
+    - `Engine/`：打字比对状态机（`TypingSession`）、码表查询与内存索引（`CodeTableProvider`）
+    - `Models/`：不可变数据模型（`Article`、`SessionStatistics`、`CodeTable`、`UserPreferences` 等，均为 `record` 类型）
+    - `Parsing/`：文章导入与文本规范化（`ArticleImportService`、`ArticleTextLayoutBuilder`）、码表解析（`CodeTableParser`）、编码检测（`TextFileDecoder`）
+    - `Persistence/`：数据访问层（`SqliteArticleRepository`、`SqliteSessionRepository`、`FileCodeTableRepository`、`JsonUserPreferencesRepository`）
   - `TypingCore.Wpf`：Windows 前端，只做渲染与 Win32/IME 事件翻译
-  - `TypingCore.Tests`：单元测试，目录结构镜像 TypingCore
+    - `Views/`：6 个页面（文章库、打字练习、练习结果、历史记录、设置、码表管理）+ 2 个自定义渲染控件
+    - `ViewModels/`：MVVM 视图模型（`MainViewModel` 导航，各页面独立 ViewModel）
+    - `Services/`：平台服务（`VelopackUpdateService`、`WindowMessageInputTranslator`、`ApplicationThemeManager`、`ClipboardService`、`FileDialogService`）
+  - `TypingCore.Tests`：单元测试，目录结构镜像 TypingCore + `Wpf/` 子目录覆盖前端行为
 - **核心难点**：IME（输入法）事件处理，`WM_KEYDOWN` 用于键速/退格统计，`WM_IME_CHAR`/`WM_CHAR` 用于上屏字符比对
-- **打包发布**：Velopack + GitHub Actions，按 tag 触发自动发布（规划中，尚未实现）
-- **当前进度**：阶段一至六已完成（核心引擎、解析、持久化、统计），阶段七起（WPF 前端、码表、打包）开发中
+- **打包发布**：Velopack 1.2.0 + GitHub Actions，按 `v*.*.*` tag 触发自动发布（基础设施已搭建，待端到端验证）
+- **当前进度**：阶段一至十四已完成（核心引擎、WPF 前端全部页面、码表、设置、测试），阶段十五（打包与发布）开发中
 
 AI 不得在未经用户明确要求的情况下，擅自变更上述技术选型（例如擅自把 WPF 换成 Avalonia、把 SQLite 换成其他数据库等）。如认为现有选型有问题，应先提出建议并等待用户确认，而不是直接修改。
 

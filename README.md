@@ -9,9 +9,10 @@
 - **实时统计面板**：键速（KPM）、字速（CPM/WPM）、平均码长、退格次数、错误率等指标
 - **文章导入**：支持 TXT 文件导入（自动识别 UTF-8/GBK 编码）和剪贴板文本导入
 - **数据持久化**：SQLite 存储文章库与练习历史记录
-- **码表反查**：预留码表接口，支持五笔/双拼等输入法的编码提示
+- **码表反查**：导入码表文件（极点/小鹤格式），练习时自动显示当前字符的编码提示
 - **个性化设置**：支持明暗主题、练习字体与字号、暂停/重来/布局快捷键
 - **偏好持久化**：设置保存到本地 JSON，启动时自动恢复
+- **自动更新**：启动时静默检查 GitHub Release 新版本，下载后下次启动自动应用
 
 ## 环境要求
 
@@ -97,51 +98,75 @@ TypingPractice/
 │   ├── Abstractions/               # 跨平台接口定义
 │   │   ├── IKeyInputEvent.cs       # 标准化按键事件
 │   │   ├── ITypingSession.cs       # 打字会话接口
-│   │   ├── ITypingSessionSnapshot.cs
 │   │   ├── IStatisticsProvider.cs  # 统计指标输出
-│   │   ├── IStatisticsSnapshot.cs
-│   │   ├── ICodeTableProvider.cs   # 码表反查
-│   │   ├── ICodeLookupResult.cs
+│   │   ├── ICodeTableProvider.cs   # 码表反查接口
+│   │   ├── ICodeTableRepository.cs # 码表持久化
 │   │   ├── IArticleRepository.cs   # 文章持久化
-│   │   ├── IArticleRecord.cs
 │   │   ├── ISessionRepository.cs   # 会话持久化
-│   │   ├── ISessionRecord.cs
+│   │   ├── IUserPreferencesRepository.cs # 用户偏好持久化
 │   │   ├── IArticleImportService.cs
-│   │   ├── KeyInputKey.cs          # 按键枚举
-│   │   ├── TypingCharacterSnapshot.cs
-│   │   ├── TypingCharacterState.cs
-│   │   └── TypingSessionState.cs
+│   │   └── ...                     # 其他接口与枚举
 │   ├── Engine/                     # 打字比对与统计引擎
-│   │   └── TypingSession.cs        # 核心状态机实现
-│   ├── Models/                     # 数据模型
-│   │   ├── Article.cs
-│   │   ├── ArticleChar.cs
-│   │   ├── ArticleTextLayout.cs
-│   │   ├── ArticleImportResult.cs
-│   │   ├── CodeTable.cs
-│   │   ├── CodeTableEntry.cs
-│   │   ├── KeyInputEvent.cs
-│   │   ├── KeystrokeRecord.cs
-│   │   ├── SessionStatistics.cs
-│   │   ├── TypingSessionRecord.cs
-│   │   └── TypingSessionSnapshot.cs
-│   ├── Parsing/                    # 文章解析与导入
+│   │   ├── TypingSession.cs        # 核心状态机实现
+│   │   └── CodeTableProvider.cs    # 码表查询与内存索引
+│   ├── Models/                     # 数据模型（record 类型，不可变）
+│   │   ├── Article.cs / ArticleChar.cs / ArticleTextLayout.cs
+│   │   ├── SessionStatistics.cs / TypingSessionSnapshot.cs
+│   │   ├── CodeTable.cs / CodeTableEntry.cs / CodeLookupResult.cs
+│   │   ├── UserPreferences.cs / UserTheme.cs
+│   │   └── ...
+│   ├── Parsing/                    # 文章与码表解析
 │   │   ├── ArticleImportService.cs
-│   │   └── ArticleTextLayoutBuilder.cs
-│   └── Persistence/                # SQLite 数据访问
+│   │   ├── ArticleTextLayoutBuilder.cs
+│   │   ├── CodeTableParser.cs      # 码表文件解析
+│   │   └── TextFileDecoder.cs      # 编码自动检测
+│   └── Persistence/                # 数据访问
 │       ├── SqliteDatabase.cs
 │       ├── SqliteArticleRepository.cs
-│       └── SqliteSessionRepository.cs
+│       ├── SqliteSessionRepository.cs
+│       ├── FileCodeTableRepository.cs    # 码表文件存储
+│       └── JsonUserPreferencesRepository.cs # 偏好 JSON 存储
 │
-├── TypingCore.Wpf/                 # WPF 前端（开发中）
-│   ├── App.xaml / App.xaml.cs
-│   └── MainWindow.xaml / MainWindow.xaml.cs
+├── TypingCore.Wpf/                 # WPF 前端
+│   ├── TypingCore.Wpf.csproj
+│   ├── App.xaml / App.xaml.cs      # 入口，Velopack 初始化
+│   ├── MainWindow.xaml / .cs       # 主窗口，导航框架
+│   ├── Assets/                     # 应用图标
+│   ├── Services/                   # 平台服务
+│   │   ├── VelopackUpdateService.cs
+│   │   ├── WindowMessageInputTranslator.cs
+│   │   ├── ApplicationThemeManager.cs
+│   │   ├── ClipboardService.cs
+│   │   └── ...
+│   ├── ViewModels/                 # MVVM 视图模型
+│   │   ├── MainViewModel.cs
+│   │   ├── TypingPracticeViewModel.cs
+│   │   ├── ArticleLibraryViewModel.cs
+│   │   ├── SettingsViewModel.cs
+│   │   └── ...
+│   └── Views/                      # 页面与自定义控件
+│       ├── TypingPracticeView.xaml   # 打字练习页
+│       ├── ArticleLibraryView.xaml   # 文章库页
+│       ├── SettingsView.xaml         # 设置页
+│       ├── HistoryView.xaml          # 历史记录页
+│       ├── PracticeResultView.xaml   # 练习结果页
+│       ├── CodeTableManagerView.xaml # 码表管理页
+│       ├── InterleavedTypingRenderControl.cs  # 布局 A 渲染
+│       └── FollowingTypingTextBlock.cs        # 布局 B 渲染
 │
 └── TypingCore.Tests/               # 单元测试
-    ├── Engine/
-    ├── Models/
-    ├── Parsing/
-    └── Persistence/
+    ├── Engine/                     # 比对引擎与码表测试
+    ├── Models/                     # 数据模型测试
+    ├── Parsing/                    # 文章与码表解析测试
+    ├── Persistence/                # 数据访问测试
+    └── Wpf/                        # 前端行为测试
+        ├── PhaseSevenViewModelTests.cs
+        ├── PhaseEightTypingInputTests.cs
+        ├── PhaseNineInterleavedRenderTests.cs
+        ├── PhaseTenFollowingRenderTests.cs
+        ├── PhaseElevenStatisticsTests.cs
+        ├── PhaseTwelveCodeTableTests.cs
+        └── PhaseThirteenSettingsTests.cs
 ```
 
 ## 技术栈
@@ -160,23 +185,20 @@ TypingPractice/
 
 ## 开发进度
 
-**已完成**（阶段一 ~ 十三及阶段十四自动化部分）：
+**已完成**（阶段一 ~ 十四）：
 - 项目初始化与架构搭建
 - 数据模型与内部格式设计
 - SQLite 数据持久化层
 - 文章导入与解析模块
 - 打字比对核心引擎
 - 统计指标计算引擎
-- WPF 前端（基础窗口、键盘事件、布局渲染、统计面板）
-- 码表导入与编码提示
+- WPF 前端（基础窗口、键盘事件、双布局渲染、统计面板、历史趋势图表）
+- 码表导入、编码提示与码表管理
 - 设置与个性化功能（主题、字体、快捷键、偏好持久化）
 - 整体测试、边界处理与长文章输入优化
-
-**待真实环境验证**：
-- 按 [`docs/testing/phase14-manual-ime-checklist.md`](docs/testing/phase14-manual-ime-checklist.md)
-  完成微软拼音、五笔和双拼的多轮手动测试
+- 阶段十四手动 IME 测试清单（见 [`docs/testing/phase14-manual-ime-checklist.md`](docs/testing/phase14-manual-ime-checklist.md)）
 
 **开发中**（阶段十五）：
-- Velopack 打包与 GitHub Actions 自动发布
+- Velopack 打包与 GitHub Actions 自动发布（基础设施已搭建，待端到端验证）
 
-详见 [`ROADMAP.md`](ROADMAP.md)。
+详见 [`ROADMAP.md`](ROADMAP.md)。版本变更记录见 [`changelog.md`](changelog.md)。
