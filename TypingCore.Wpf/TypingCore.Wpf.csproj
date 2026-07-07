@@ -3,6 +3,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.4" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -10,9 +11,27 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <AssemblyName>TypingPractice</AssemblyName>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <StartupObject>TypingCore.Wpf.App</StartupObject>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Product>TypingPractice</Product>
+    <Company>TypingPractice</Company>
+    <Authors>TypingPractice</Authors>
+    <Description>Windows typing practice app for Chinese IME users.</Description>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
 
 </Project>

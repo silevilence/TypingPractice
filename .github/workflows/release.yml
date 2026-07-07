@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish Windows release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Read version from tag
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_NAME -notmatch '^v(?<Version>\d+\.\d+\.\d+)$') {
+            throw "Tag must match v<major>.<minor>.<patch>, for example v1.0.0."
+          }
+
+          "VERSION=$($Matches.Version)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Restore
+        run: dotnet restore TypingPractice.sln
+
+      - name: Test
+        run: dotnet test TypingPractice.sln --configuration Release --no-restore
+
+      - name: Publish app
+        shell: pwsh
+        run: |
+          dotnet publish TypingCore.Wpf/TypingCore.Wpf.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output artifacts/publish `
+            -p:Version=$env:VERSION `
+            -p:AssemblyVersion=$env:VERSION.0 `
+            -p:FileVersion=$env:VERSION.0
+
+      - name: Restore Velopack CLI
+        run: dotnet tool restore
+
+      - name: Pack Velopack release
+        shell: pwsh
+        run: |
+          dotnet tool run vpk pack `
+            --packId TypingPractice `
+            --packVersion $env:VERSION `
+            --packDir artifacts/publish `
+            --mainExe TypingPractice.exe `
+            --channel win
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = Get-ChildItem -Path Releases -File | ForEach-Object { $_.FullName }
+          gh release create $env:GITHUB_REF_NAME $assets `
+            --repo $env:GITHUB_REPOSITORY `
+            --title $env:GITHUB_REF_NAME `
+            --generate-notes

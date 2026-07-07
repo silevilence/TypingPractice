@@ -46,10 +46,17 @@ dotnet build
 dotnet build -c Release
 
 # 自包含发布（win-x64）
-dotnet publish TypingCore.Wpf -c Release -r win-x64 --self-contained
+dotnet publish TypingCore.Wpf -c Release -r win-x64 --self-contained true
+
+# 本地生成 Velopack 安装包与更新包
+dotnet tool restore
+dotnet publish TypingCore.Wpf -c Release -r win-x64 --self-contained true -o artifacts/publish
+dotnet tool run vpk pack --packId TypingPractice --packVersion 1.0.0 --packDir artifacts/publish --mainExe TypingPractice.exe --channel win
 ```
 
-> **注意**：Velopack 打包与 GitHub Actions 自动发布尚在规划中，详见 `ROADMAP.md` 阶段十五。
+版本 tag 采用 `v<major>.<minor>.<patch>`，例如 `v1.0.0`。推送匹配 tag 后，
+GitHub Actions 会构建、测试、打包并创建 GitHub Release，上传 `Releases/`
+目录中的安装包、更新包和 `RELEASES` 索引文件。
 
 ## 测试
 
@@ -148,8 +155,8 @@ TypingPractice/
 | 测试框架 | xUnit | 2.5.3 |
 | 测试工具 | Microsoft.NET.Test.Sdk | 17.8.0 |
 | 覆盖率 | coverlet.collector | 6.0.0 |
-| 打包发布 | Velopack | 规划中 |
-| CI/CD | GitHub Actions | 规划中 |
+| 打包发布 | Velopack | 1.2.0 |
+| CI/CD | GitHub Actions | tag 触发发布 |
 
 ## 开发进度
 
@@ -169,7 +176,7 @@ TypingPractice/
 - 按 [`docs/testing/phase14-manual-ime-checklist.md`](docs/testing/phase14-manual-ime-checklist.md)
   完成微软拼音、五笔和双拼的多轮手动测试
 
-**计划中**（阶段十五）：
+**开发中**（阶段十五）：
 - Velopack 打包与 GitHub Actions 自动发布
 
 详见 [`ROADMAP.md`](ROADMAP.md)。

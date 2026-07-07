@@ -7,6 +7,7 @@ using TypingCore.Parsing;
 using TypingCore.Persistence;
 using TypingCore.Wpf.Services;
 using TypingCore.Wpf.ViewModels;
+using Velopack;
 
 namespace TypingCore.Wpf;
 
@@ -15,6 +16,23 @@ namespace TypingCore.Wpf;
 /// </summary>
 public partial class App : Application
 {
+	/// <summary>
+	/// Starts the packaged WPF application.
+	/// </summary>
+	/// <remarks>
+	/// Thread safety: WPF requires this entry point to run on the single UI STA thread.
+	/// Velopack handles install/update hooks before the WPF dispatcher is created.
+	/// </remarks>
+	[STAThread]
+	public static void Main(string[] args)
+	{
+		VelopackApp.Build().Run();
+
+		App app = new();
+		app.InitializeComponent();
+		app.Run();
+	}
+
 	/// <inheritdoc />
 	protected override void OnStartup(StartupEventArgs e)
 	{
@@ -24,6 +42,7 @@ public partial class App : Application
 		MainWindow window = BuildMainWindow();
 		MainWindow = window;
 		window.Show();
+		_ = VelopackUpdateService.CheckAndDownloadLatestAsync();
 	}
 
 	private static MainWindow BuildMainWindow()
