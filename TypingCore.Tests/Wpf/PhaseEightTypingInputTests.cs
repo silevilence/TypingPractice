@@ -241,6 +241,9 @@ public sealed class PhaseEightTypingInputTests
             return Task.CompletedTask;
         }
 
+        public Task RestoreAsync(string articleId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
         public Task<IArticleRecord?> GetByIdAsync(string articleId, CancellationToken cancellationToken = default)
             => Task.FromResult<IArticleRecord?>(storedArticles.SingleOrDefault(article => article.ArticleId == articleId));
 

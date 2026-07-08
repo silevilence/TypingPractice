@@ -157,6 +157,9 @@ public sealed class PhaseElevenStatisticsTests
         public Task DeleteAsync(string articleId, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
 
+        public Task RestoreAsync(string articleId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
         public Task<IArticleRecord?> GetByIdAsync(
             string articleId,
             CancellationToken cancellationToken = default)

@@ -14,6 +14,7 @@ public sealed class MainViewModel : ObservableObject
 {
     private readonly ArticleLibraryViewModel articleLibrary;
     private readonly IArticleTextLayoutBuilder articleTextLayoutBuilder;
+    private readonly IArticleRepository? articleRepository;
     private readonly CodeTableManagerViewModel? codeTableManager;
     private readonly ICodeTableProvider? codeTableProvider;
     private readonly HistoryViewModel history;
@@ -30,7 +31,8 @@ public sealed class MainViewModel : ObservableObject
         ISystemClock systemClock,
         ISessionRepository sessionRepository,
         CodeTableManagerViewModel? codeTableManager = null,
-        ICodeTableProvider? codeTableProvider = null)
+        ICodeTableProvider? codeTableProvider = null,
+        IArticleRepository? articleRepository = null)
     {
         ArgumentNullException.ThrowIfNull(articleLibrary);
         ArgumentNullException.ThrowIfNull(history);
@@ -41,6 +43,7 @@ public sealed class MainViewModel : ObservableObject
 
         this.articleLibrary = articleLibrary;
         this.articleTextLayoutBuilder = articleTextLayoutBuilder;
+        this.articleRepository = articleRepository;
         this.codeTableManager = codeTableManager;
         this.codeTableProvider = codeTableProvider;
         this.history = history;
@@ -54,6 +57,8 @@ public sealed class MainViewModel : ObservableObject
         ShowHistoryCommand = new AsyncRelayCommand(() => ShowHistoryAsync());
         ShowSettingsCommand = new RelayCommand(ShowSettings);
         articleLibrary.PracticeRequested += HandlePracticeRequested;
+        articleLibrary.EditRequested += ShowEdit;
+        articleLibrary.PreviewRequested += ShowPreview;
     }
 
     public PageViewModel CurrentPage
@@ -111,6 +116,36 @@ public sealed class MainViewModel : ObservableObject
 
     private void HandlePracticeRequested(IArticleRecord article)
         => StartPractice(article);
+
+    private void ShowEdit(IArticleRecord article)
+    {
+        if (articleRepository is null)
+        {
+            CurrentPage = articleLibrary;
+            return;
+        }
+
+        CurrentPage = new ArticleEditViewModel(
+            article,
+            articleRepository,
+            articleTextLayoutBuilder,
+            async updated =>
+            {
+                await articleLibrary.LoadAsync();
+                CurrentPage = articleLibrary;
+            },
+            ShowArticleLibrary);
+    }
+
+    private void ShowPreview(IArticleRecord article)
+    {
+        CurrentPage = new ArticlePreviewViewModel(
+            article,
+            articleTextLayoutBuilder,
+            StartPractice,
+            ShowEdit,
+            ShowArticleLibrary);
+    }
 
     private void StartPractice(IArticleRecord article)
     {

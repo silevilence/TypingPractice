@@ -179,3 +179,26 @@
         - [x] 推送测试 tag，验证 Actions 自动触发、构建、发布全流程
         - [x] 验证已安装客户端能通过 Velopack 自动检测并升级到新发布的版本
     - [x] 编写用户使用说明文档（下载安装、更新机制说明）
+
+- [x] **文章管理优化**
+    - [x] 文章列表展示优化
+        - [x] 列表项卡片化重构：标题、摘要（前 N 字预览）、字数、标签胶囊、创建时间，遵循新中式纸韵卡片样式（白底 + 微投影 + 左侧 4px 深棕装饰条）
+        - [x] 支持按标题/标签搜索、按创建时间/字数排序，搜索框使用内嵌 SVG 图标样式
+        - [x] 列表项支持右键菜单与操作按钮（编辑、预览、删除）
+    - [x] 文章编辑功能
+        - [x] 新增文章编辑页（`Views/ArticleEditView` + `ArticleEditViewModel`），支持标题、标签、正文的修改
+        - [x] Core 层扩展 `IArticleRepository`：新增 `UpdateAsync(Article)` 方法，`SqliteArticleRepository` 实现并补充对应单元测试
+        - [x] 正文编辑后重新触发分字算法（`ArticleTextLayoutBuilder`）刷新内部布局，保证打字比对数据一致
+    - [x] 文章删除（软删除）
+        - [x] `articles` 表新增 `IsDeleted` 字段（默认 0），提供数据库迁移脚本，确保已有记录不受影响
+        - [x] `IArticleRepository` 新增 `DeleteAsync(int id)`（软删除）与 `RestoreAsync(int id)`，列表查询默认过滤已删除项
+        - [x] 删除前弹出二次确认对话框，避免误操作
+    - [x] 标签管理功能
+        - [x] 标签模型设计：`articles` 表新增 `Tags` 字段（JSON 数组或独立 `tags`/`article_tags` 关联表，需先评估方案）
+        - [x] Core 层提供标签的增、删、改、查接口（`IArticleRepository` 或独立 `ITagRepository`）
+        - [x] 文章编辑页支持标签的添加、删除、重命名；列表页支持按标签胶囊筛选
+        - [x] 补充标签相关单元测试（CRUD、按标签查询、重命名后关联文章同步更新）
+    - [x] 文章预览
+        - [x] 新增文章预览页（`Views/ArticlePreviewView`），只读展示文章全文，支持长文滚动
+        - [x] 预览页复用打字渲染控件的分字布局逻辑，保证预览效果与实际打字展示一致
+        - [x] 预览页提供"开始练习"入口，直接进入打字练习页

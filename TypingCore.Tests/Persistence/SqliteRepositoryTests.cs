@@ -18,7 +18,7 @@ public sealed class SqliteRepositoryTests : IDisposable
     }.ToString();
 
     [Fact]
-    public async Task Article_repository_supports_save_search_update_and_delete()
+    public async Task Article_repository_supports_save_search_update_soft_delete_and_restore()
     {
         IArticleRepository repository = new SqliteArticleRepository(ConnectionString);
         DateTimeOffset createdAt = new(2026, 7, 3, 9, 0, 0, TimeSpan.Zero);
@@ -72,6 +72,40 @@ public sealed class SqliteRepositoryTests : IDisposable
         await repository.DeleteAsync("article-1");
 
         Assert.Null(await repository.GetByIdAsync("article-1"));
+        Assert.Empty(await repository.SearchAsync(tag: "双拼"));
+
+        await repository.RestoreAsync("article-1");
+
+        Assert.NotNull(await repository.GetByIdAsync("article-1"));
+        Assert.Single(await repository.SearchAsync(tag: "双拼"));
+    }
+
+    [Fact]
+    public async Task Article_repository_tag_methods_update_related_articles()
+    {
+        IArticleRepository repository = new SqliteArticleRepository(ConnectionString);
+        DateTimeOffset createdAt = new(2026, 7, 3, 9, 0, 0, TimeSpan.Zero);
+
+        await repository.SaveAsync(new Article(
+            "article-1",
+            "五笔入门",
+            "春眠不觉晓",
+            createdAt,
+            new[] { "古诗" }));
+        await repository.SaveAsync(new Article(
+            "article-2",
+            "速度练习",
+            "夜来风雨声",
+            createdAt.AddMinutes(1),
+            new[] { "古诗", "练习" }));
+
+        await repository.AddTagAsync("article-1", "五笔");
+        await repository.RenameTagAsync("古诗", "诗词");
+        await repository.DeleteTagAsync("练习");
+
+        Assert.Equal(new[] { "五笔", "诗词" }, await repository.GetTagsAsync());
+        Assert.Equal(new[] { "诗词", "五笔" }, (await repository.GetByIdAsync("article-1"))!.Tags);
+        Assert.Equal(new[] { "诗词" }, (await repository.GetByIdAsync("article-2"))!.Tags);
     }
 
     [Fact]
@@ -141,18 +175,20 @@ public sealed class SqliteRepositoryTests : IDisposable
         await repository.SearchAsync();
 
         HashSet<string> tableNames = await ReadUserTableNamesAsync();
+        HashSet<string> articleColumns = await ReadTableColumnNamesAsync("articles");
         HashSet<string> sessionColumns = await ReadTableColumnNamesAsync("sessions");
 
         Assert.Contains("articles", tableNames);
         Assert.Contains("sessions", tableNames);
         Assert.Contains("keystrokes", tableNames);
         Assert.Contains("codetables", tableNames);
+        Assert.Contains("is_deleted", articleColumns);
         Assert.Contains("backspace_rate", sessionColumns);
-        Assert.Equal(2, await ReadSchemaVersionAsync());
+        Assert.Equal(3, await ReadSchemaVersionAsync());
 
         await repository.SearchAsync();
 
-        Assert.Equal(2, await ReadSchemaVersionAsync());
+        Assert.Equal(3, await ReadSchemaVersionAsync());
     }
 
     [Fact]
@@ -183,8 +219,9 @@ public sealed class SqliteRepositoryTests : IDisposable
 
         Assert.NotNull(migrated.Statistics);
         Assert.Equal(0.2, migrated.Statistics!.BackspaceRate);
-        Assert.Equal(2, await ReadSchemaVersionAsync());
+        Assert.Equal(3, await ReadSchemaVersionAsync());
         Assert.Contains("backspace_rate", await ReadTableColumnNamesAsync("sessions"));
+        Assert.Contains("is_deleted", await ReadTableColumnNamesAsync("articles"));
     }
 
     public void Dispose()
@@ -261,6 +298,14 @@ public sealed class SqliteRepositoryTests : IDisposable
         await command.ExecuteNonQueryAsync();
 
         command.CommandText = """
+            CREATE TABLE articles (
+                article_id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                raw_text TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                tags_json TEXT NOT NULL
+            );
+
             CREATE TABLE sessions (
                 session_id TEXT PRIMARY KEY,
                 article_id TEXT NOT NULL,

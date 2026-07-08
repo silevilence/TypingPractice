@@ -17,10 +17,58 @@
             <Setter Property="Padding" Value="20" />
         </Style>
 
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Border Width="8"
+                                    HorizontalAlignment="Center"
+                                    Background="{DynamicResource TagBackgroundBrush}"
+                                    CornerRadius="4"
+                                    Opacity="0.55" />
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}"
+                                                  Focusable="False"
+                                                  Opacity="0" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb MinHeight="42"
+                                           Background="{DynamicResource AccentBrush}">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border x:Name="ThumbBackground"
+                                                        Margin="2"
+                                                        Background="{TemplateBinding Background}"
+                                                        CornerRadius="4"
+                                                        Opacity="0.75" />
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="ThumbBackground" Property="Opacity" Value="0.95" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}"
+                                                  Focusable="False"
+                                                  Opacity="0" />
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- 主按钮样式 -->
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
             <Setter Property="Height" Value="40" />
-            <Setter Property="Margin" Value="0,12,0,0" />
             <Setter Property="Padding" Value="28,0" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
@@ -29,11 +77,14 @@
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="BtnBackground"
                                 Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="10"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -41,6 +92,10 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="BtnBackground" Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="BtnBackground" Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                                <Setter TargetName="BtnBackground" Property="BorderThickness" Value="1" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
@@ -62,6 +117,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -75,6 +131,9 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBackground" Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="BtnBackground" Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
@@ -184,35 +243,100 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
-                        <Border x:Name="ComboBorder"
+                        <Grid>
+                            <ToggleButton IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          Background="Transparent"
+                                          Foreground="{DynamicResource PrimaryTextBrush}"
+                                          BorderThickness="0">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="ComboBorder"
+                                                Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                BorderThickness="{Binding BorderThickness, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                CornerRadius="10"
+                                                TextElement.Foreground="{DynamicResource PrimaryTextBrush}">
+                                            <Grid>
+                                                <ContentPresenter Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                                  ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                                  TextElement.Foreground="{DynamicResource PrimaryTextBrush}"
+                                                                  Margin="12,0,36,0"
+                                                                  HorizontalAlignment="Left"
+                                                                  VerticalAlignment="Center" />
+                                                <Path Width="16" Height="16"
+                                                      Margin="0,0,12,0"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Stretch="Uniform"
+                                                      Stroke="{DynamicResource AccentBrush}"
+                                                      StrokeThickness="1.5"
+                                                      StrokeEndLineCap="Round"
+                                                      StrokeStartLineCap="Round"
+                                                      Data="{StaticResource ChevronDownIcon}" />
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False">
+                                <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        Margin="0,4,0,0"
+                                        Padding="4"
+                                        Background="{DynamicResource CardBackgroundBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10">
+                                    <ScrollViewer CanContentScroll="True"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter TargetName="PART_Popup" Property="MinHeight" Value="0" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBackground"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="10">
-                            <Grid>
-                                <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
-                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                  Margin="12,0,36,0"
-                                                  HorizontalAlignment="Left"
-                                                  VerticalAlignment="Center" />
-                                <Path Width="16" Height="16"
-                                      Margin="0,0,12,0"
-                                      HorizontalAlignment="Right"
-                                      VerticalAlignment="Center"
-                                      Stretch="Uniform"
-                                      Stroke="{DynamicResource AccentBrush}"
-                                      StrokeThickness="1.5"
-                                      StrokeEndLineCap="Round"
-                                      StrokeStartLineCap="Round"
-                                      Data="{StaticResource ChevronDownIcon}" />
-                            </Grid>
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBackground" Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
                             </Trigger>
-                            <Trigger Property="IsDropDownOpen" Value="True">
-                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBackground" Property="Background" Value="{DynamicResource TagBackgroundBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -256,6 +380,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="180" />
+                <ColumnDefinition Width="160" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
@@ -270,13 +395,19 @@
                       ItemsSource="{Binding AvailableTags}"
                       SelectedItem="{Binding SelectedTag}" />
 
-            <Button Grid.Column="2"
+            <ComboBox Grid.Column="2"
+                      Margin="12,0,0,0"
+                      Style="{StaticResource StandardComboBoxStyle}"
+                      ItemsSource="{Binding SortOptions}"
+                      SelectedItem="{Binding SelectedSortOption}" />
+
+            <Button Grid.Column="3"
                     Margin="12,0,0,0"
                     Command="{Binding SearchCommand}"
                     Style="{StaticResource PrimaryButtonStyle}"
                     Content="筛选" />
 
-            <Button Grid.Column="3"
+            <Button Grid.Column="4"
                     Margin="10,0,0,0"
                     Command="{Binding ClearFiltersCommand}"
                     Style="{StaticResource SecondaryButtonStyle}"
@@ -310,7 +441,8 @@
                     <TextBox Margin="0,8,0,0"
                              Style="{StaticResource StandardTextBoxStyle}"
                              Text="{Binding ImportTagsText, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Command="{Binding ImportFromFileCommand}"
+                    <Button Margin="0,12,0,0"
+                            Command="{Binding ImportFromFileCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Content="选择文件并导入" />
                 </StackPanel>
@@ -336,7 +468,8 @@
                     <TextBox Margin="0,8,0,0"
                              Style="{StaticResource StandardTextBoxStyle}"
                              Text="{Binding ClipboardTitle, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Command="{Binding ImportFromClipboardCommand}"
+                    <Button Margin="0,12,0,0"
+                            Command="{Binding ImportFromClipboardCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Content="导入剪贴板文本" />
                 </StackPanel>
@@ -352,6 +485,14 @@
                                 Padding="20"
                                 Background="{DynamicResource CardBackgroundBrush}"
                                 CornerRadius="14">
+                            <Border.ContextMenu>
+                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem Header="预览" Command="{Binding PreviewCommand}" />
+                                    <MenuItem Header="编辑" Command="{Binding EditCommand}" />
+                                    <Separator />
+                                    <MenuItem Header="删除" Command="{Binding DeleteCommand}" />
+                                </ContextMenu>
+                            </Border.ContextMenu>
                             <Border.Effect>
                                 <DropShadowEffect Color="Black"
                                                   BlurRadius="12"
@@ -388,6 +529,11 @@
                                                    Text="{Binding CreatedAtText}"
                                                    Foreground="{DynamicResource SecondaryTextBrush}"
                                                    FontSize="12" />
+                                        <TextBlock DockPanel.Dock="Right"
+                                                   Margin="0,0,14,0"
+                                                   Text="{Binding WordCountText}"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="12" />
                                     </DockPanel>
 
                                     <TextBlock Grid.Row="1"
@@ -407,25 +553,52 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Margin="0,0,8,6"
+                                                <Button Margin="0,0,8,6"
                                                         Padding="10,4"
+                                                        Command="{Binding DataContext.FilterByTagCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
                                                         Background="{DynamicResource TagBackgroundBrush}"
-                                                        CornerRadius="999">
+                                                        BorderBrush="Transparent"
+                                                        BorderThickness="0"
+                                                        Cursor="Hand">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    CornerRadius="999"
+                                                                    Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                                  VerticalAlignment="Center" />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
                                                     <TextBlock Text="{Binding}"
                                                                Foreground="{DynamicResource AccentBrush}"
                                                                FontSize="11"
                                                                FontWeight="SemiBold" />
-                                                </Border>
+                                                </Button>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
 
-                                    <Button Grid.Row="3"
-                                            Margin="0,14,0,0"
-                                            HorizontalAlignment="Left"
-                                            Command="{Binding StartPracticeCommand}"
-                                            Style="{StaticResource PrimaryButtonStyle}"
-                                            Content="开始练习" />
+                                    <StackPanel Grid.Row="3"
+                                                Margin="0,14,0,0"
+                                                Orientation="Horizontal">
+                                        <Button Margin="0,0,10,0"
+                                                Command="{Binding PreviewCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Content="预览" />
+                                        <Button Margin="0,0,10,0"
+                                                Command="{Binding EditCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Content="编辑" />
+                                        <Button Margin="0,0,10,0"
+                                                Command="{Binding DeleteCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Content="删除" />
+                                        <Button Command="{Binding StartPracticeCommand}"
+                                                Style="{StaticResource PrimaryButtonStyle}"
+                                                Content="开始练习" />
+                                    </StackPanel>
                                 </Grid>
                             </Grid>
                         </Border>
@@ -433,5 +606,59 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
+        <Grid Grid.RowSpan="4"
+              Panel.ZIndex="20"
+              Background="Transparent">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsDeleteConfirmationVisible}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Border Width="420"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="16">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black"
+                                      BlurRadius="16"
+                                      ShadowDepth="2"
+                                      Opacity="0.06"
+                                      Direction="270" />
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="确认删除文章？"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryTextBrush}" />
+                    <TextBlock Margin="0,10,0,0"
+                               Text="{Binding PendingDeleteTitle, StringFormat=删除后《{0}》将从文章库列表隐藏，可通过仓储恢复接口找回。}"
+                               FontSize="14"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               TextWrapping="Wrap"
+                               LineHeight="22" />
+                    <StackPanel Margin="0,20,0,0"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal">
+                        <Button Margin="0,0,10,0"
+                                Command="{Binding CancelDeleteCommand}"
+                                Content="取消"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button Command="{Binding ConfirmDeleteCommand}"
+                                Content="确认删除"
+                                Style="{StaticResource PrimaryButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

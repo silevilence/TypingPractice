@@ -180,6 +180,70 @@ public sealed class PhaseSevenViewModelTests
     }
 
     [Fact]
+    public async Task ConfirmDeleteAsync_soft_deletes_selected_article_and_refreshes_list()
+    {
+        FakeArticleRepository repository = new(
+            new Article(
+                "article-1",
+                "五笔入门",
+                "春眠不觉晓",
+                new DateTimeOffset(2026, 7, 3, 8, 0, 0, TimeSpan.Zero),
+                new[] { "古诗" }),
+            new Article(
+                "article-2",
+                "速度练习",
+                "夜来风雨声",
+                new DateTimeOffset(2026, 7, 3, 9, 0, 0, TimeSpan.Zero),
+                new[] { "练习" }));
+
+        ArticleLibraryViewModel viewModel = CreateArticleLibraryViewModel(repository);
+        await viewModel.LoadAsync();
+
+        viewModel.Articles[0].DeleteCommand.Execute(null);
+        await viewModel.ConfirmDeleteCommand.ExecuteAsync(null);
+
+        Assert.False(viewModel.IsDeleteConfirmationVisible);
+        Assert.Equal("article-1", Assert.Single(viewModel.Articles).ArticleId);
+        Assert.DoesNotContain(repository.StoredArticles, article => article.ArticleId == "article-2");
+    }
+
+    [Fact]
+    public async Task SaveCommand_updates_article_with_normalized_body_and_tags()
+    {
+        Article article = new(
+            "article-1",
+            "旧标题",
+            "甲",
+            new DateTimeOffset(2026, 7, 3, 8, 0, 0, TimeSpan.Zero),
+            new[] { "旧标签" });
+        FakeArticleRepository repository = new(article);
+        IArticleRecord? savedArticle = null;
+        ArticleEditViewModel viewModel = new(
+            article,
+            repository,
+            new ArticleTextLayoutBuilder(),
+            updated =>
+            {
+                savedArticle = updated;
+                return Task.CompletedTask;
+            },
+            () => { });
+
+        viewModel.TitleText = " 新标题 ";
+        viewModel.TagsText = "古诗，五笔，古诗";
+        viewModel.BodyText = "甲\r\n\r\n\r\n乙";
+
+        await viewModel.SaveCommand.ExecuteAsync(null);
+
+        Article saved = Assert.Single(repository.StoredArticles);
+        Assert.Equal("新标题", saved.Title);
+        Assert.Equal("甲\n\n乙", saved.RawText);
+        Assert.Equal(new[] { "古诗", "五笔" }, saved.Tags);
+        Assert.NotNull(savedArticle);
+        Assert.Equal("新标题", savedArticle!.Title);
+    }
+
+    [Fact]
     public void SettingsViewModel_exposes_personalization_options()
     {
         SettingsViewModel viewModel = new();
@@ -233,6 +297,9 @@ public sealed class PhaseSevenViewModelTests
             storedArticles.RemoveAll(article => article.ArticleId == articleId);
             return Task.CompletedTask;
         }
+
+        public Task RestoreAsync(string articleId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
 
         public Task<IArticleRecord?> GetByIdAsync(string articleId, CancellationToken cancellationToken = default)
             => Task.FromResult<IArticleRecord?>(storedArticles.SingleOrDefault(article => article.ArticleId == articleId));

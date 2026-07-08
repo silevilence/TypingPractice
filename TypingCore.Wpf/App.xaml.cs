@@ -91,7 +91,8 @@ public partial class App : Application
 			systemClock,
 			sessionRepository,
 			codeTableManager,
-			codeTableProvider);
+			codeTableProvider,
+			articleRepository);
 
 		return new MainWindow(mainViewModel);
 	}

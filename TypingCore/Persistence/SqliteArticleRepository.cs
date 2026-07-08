@@ -52,6 +52,10 @@ public sealed class SqliteArticleRepository : IArticleRepository
     }
 
     /// <inheritdoc />
+    public Task UpdateAsync(IArticleRecord articleRecord, CancellationToken cancellationToken = default)
+        => SaveAsync(articleRecord, cancellationToken);
+
+    /// <inheritdoc />
     public async Task DeleteAsync(string articleId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(articleId);
@@ -59,7 +63,21 @@ public sealed class SqliteArticleRepository : IArticleRepository
         await using SqliteConnection connection =
             await database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         await using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = "DELETE FROM articles WHERE article_id = @articleId;";
+        command.CommandText = "UPDATE articles SET is_deleted = 1 WHERE article_id = @articleId;";
+        command.Parameters.AddWithValue("@articleId", articleId);
+
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async Task RestoreAsync(string articleId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(articleId);
+
+        await using SqliteConnection connection =
+            await database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "UPDATE articles SET is_deleted = 0 WHERE article_id = @articleId;";
         command.Parameters.AddWithValue("@articleId", articleId);
 
         await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
@@ -78,7 +96,8 @@ public sealed class SqliteArticleRepository : IArticleRepository
         command.CommandText = """
             SELECT article_id, title, raw_text, created_at, tags_json
             FROM articles
-            WHERE article_id = @articleId;
+            WHERE article_id = @articleId
+              AND is_deleted = 0;
             """;
         command.Parameters.AddWithValue("@articleId", articleId);
 
@@ -109,7 +128,7 @@ public sealed class SqliteArticleRepository : IArticleRepository
             FROM articles
             """);
 
-        List<string> filters = new();
+        List<string> filters = new() { "is_deleted = 0" };
 
         if (!string.IsNullOrWhiteSpace(query))
         {

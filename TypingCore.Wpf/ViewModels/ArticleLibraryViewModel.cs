@@ -13,6 +13,10 @@ namespace TypingCore.Wpf.ViewModels;
 public sealed class ArticleLibraryViewModel : PageViewModel
 {
     public const string AllTagsOption = "全部标签";
+    public const string SortByCreatedDescOption = "创建时间 ↓";
+    public const string SortByCreatedAscOption = "创建时间 ↑";
+    public const string SortByLengthDescOption = "字数 ↓";
+    public const string SortByLengthAscOption = "字数 ↑";
 
     private readonly IArticleRepository articleRepository;
     private readonly IArticleImportService articleImportService;
@@ -21,10 +25,13 @@ public sealed class ArticleLibraryViewModel : PageViewModel
     private readonly ISystemClock systemClock;
     private string searchText = string.Empty;
     private string selectedTag = AllTagsOption;
+    private string selectedSortOption = SortByCreatedDescOption;
     private string clipboardTitle = "剪贴板导入";
     private string importTagsText = string.Empty;
+    private ArticleCardViewModel? pendingDeleteArticle;
     private string statusMessage = "从本地文件或剪贴板导入文章后，就可以开始练习。";
     private bool isBusy;
+    private bool isDeleteConfirmationVisible;
 
     public ArticleLibraryViewModel(
         IArticleRepository articleRepository,
@@ -42,19 +49,34 @@ public sealed class ArticleLibraryViewModel : PageViewModel
 
         Articles = new ObservableCollection<ArticleCardViewModel>();
         AvailableTags = new ObservableCollection<string> { AllTagsOption };
+        SortOptions = new ObservableCollection<string>
+        {
+            SortByCreatedDescOption,
+            SortByCreatedAscOption,
+            SortByLengthDescOption,
+            SortByLengthAscOption,
+        };
 
         LoadCommand = new AsyncRelayCommand(LoadAsync, () => !IsBusy);
         SearchCommand = new AsyncRelayCommand(SearchAsync, () => !IsBusy);
         ImportFromFileCommand = new AsyncRelayCommand(ImportFromFileAsync, () => !IsBusy);
         ImportFromClipboardCommand = new AsyncRelayCommand(ImportFromClipboardAsync, () => !IsBusy);
         ClearFiltersCommand = new AsyncRelayCommand(ClearFiltersAsync, () => !IsBusy);
+        CancelDeleteCommand = new RelayCommand(CancelDelete);
+        ConfirmDeleteCommand = new AsyncRelayCommand(ConfirmDeleteAsync, () => !IsBusy && PendingDeleteArticle is not null);
     }
 
     public event Action<IArticleRecord>? PracticeRequested;
 
+    public event Action<IArticleRecord>? EditRequested;
+
+    public event Action<IArticleRecord>? PreviewRequested;
+
     public ObservableCollection<ArticleCardViewModel> Articles { get; }
 
     public ObservableCollection<string> AvailableTags { get; }
+
+    public ObservableCollection<string> SortOptions { get; }
 
     public IAsyncRelayCommand LoadCommand { get; }
 
@@ -66,6 +88,10 @@ public sealed class ArticleLibraryViewModel : PageViewModel
 
     public IAsyncRelayCommand ClearFiltersCommand { get; }
 
+    public IRelayCommand CancelDeleteCommand { get; }
+
+    public IAsyncRelayCommand ConfirmDeleteCommand { get; }
+
     public string SearchText
     {
         get => searchText;
@@ -76,6 +102,12 @@ public sealed class ArticleLibraryViewModel : PageViewModel
     {
         get => selectedTag;
         set => SetProperty(ref selectedTag, string.IsNullOrWhiteSpace(value) ? AllTagsOption : value);
+    }
+
+    public string SelectedSortOption
+    {
+        get => selectedSortOption;
+        set => SetProperty(ref selectedSortOption, string.IsNullOrWhiteSpace(value) ? SortByCreatedDescOption : value);
     }
 
     public string ClipboardTitle
@@ -96,6 +128,27 @@ public sealed class ArticleLibraryViewModel : PageViewModel
         private set => SetProperty(ref statusMessage, value);
     }
 
+    public bool IsDeleteConfirmationVisible
+    {
+        get => isDeleteConfirmationVisible;
+        private set => SetProperty(ref isDeleteConfirmationVisible, value);
+    }
+
+    public ArticleCardViewModel? PendingDeleteArticle
+    {
+        get => pendingDeleteArticle;
+        private set
+        {
+            if (SetProperty(ref pendingDeleteArticle, value))
+            {
+                OnPropertyChanged(nameof(PendingDeleteTitle));
+                ConfirmDeleteCommand.NotifyCanExecuteChanged();
+            }
+        }
+    }
+
+    public string PendingDeleteTitle => PendingDeleteArticle?.Title ?? string.Empty;
+
     public bool IsBusy
     {
         get => isBusy;
@@ -108,6 +161,7 @@ public sealed class ArticleLibraryViewModel : PageViewModel
                 ImportFromFileCommand.NotifyCanExecuteChanged();
                 ImportFromClipboardCommand.NotifyCanExecuteChanged();
                 ClearFiltersCommand.NotifyCanExecuteChanged();
+                ConfirmDeleteCommand.NotifyCanExecuteChanged();
             }
         }
     }
@@ -183,6 +237,7 @@ public sealed class ArticleLibraryViewModel : PageViewModel
         {
             SearchText = string.Empty;
             SelectedTag = AllTagsOption;
+            SelectedSortOption = SortByCreatedDescOption;
             await SearchInternalAsync().ConfigureAwait(false);
             StatusMessage = Articles.Count == 0
                 ? "筛选条件已清空。当前还没有文章。"
@@ -196,7 +251,7 @@ public sealed class ArticleLibraryViewModel : PageViewModel
         string? tag = NormalizeTag(SelectedTag);
         IReadOnlyList<IArticleRecord> results = await articleRepository.SearchAsync(query, tag).ConfigureAwait(false);
 
-        ReplaceArticles(results);
+        ReplaceArticles(SortArticles(results));
 
         if (results.Count == 0)
         {
@@ -246,11 +301,17 @@ public sealed class ArticleLibraryViewModel : PageViewModel
         foreach (IArticleRecord article in results)
         {
             Articles.Add(new ArticleCardViewModel(
+                article.ArticleId,
                 article.Title,
                 BuildPreview(article.RawText),
+                $"{article.RawText.Length} 字",
                 article.CreatedAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm"),
                 article.Tags.ToArray(),
-                new RelayCommand(() => OpenPractice(article))));
+                new RelayCommand(() => OpenPractice(article)),
+                new RelayCommand(() => OpenEdit(article)),
+                new RelayCommand(() => OpenPreview(article)),
+                new RelayCommand(() => RequestDelete(article)),
+                new RelayCommand<string>(tag => ApplyTagFilter(tag))));
         }
     }
 
@@ -258,6 +319,65 @@ public sealed class ArticleLibraryViewModel : PageViewModel
     {
         PracticeRequested?.Invoke(article);
         StatusMessage = $"已打开《{article.Title}》的练习页。";
+    }
+
+    private void OpenEdit(IArticleRecord article)
+    {
+        EditRequested?.Invoke(article);
+        StatusMessage = $"正在编辑《{article.Title}》。";
+    }
+
+    private void OpenPreview(IArticleRecord article)
+    {
+        PreviewRequested?.Invoke(article);
+        StatusMessage = $"正在预览《{article.Title}》。";
+    }
+
+    private void ApplyTagFilter(string? tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            return;
+        }
+
+        SelectedTag = tag;
+        _ = SearchAsync();
+    }
+
+    private void RequestDelete(IArticleRecord article)
+    {
+        PendingDeleteArticle = Articles.SingleOrDefault(card =>
+            string.Equals(card.ArticleId, article.ArticleId, StringComparison.Ordinal));
+        IsDeleteConfirmationVisible = PendingDeleteArticle is not null;
+        StatusMessage = IsDeleteConfirmationVisible
+            ? $"请确认是否删除《{article.Title}》。"
+            : "待删除文章已不在当前列表中。";
+    }
+
+    private void CancelDelete()
+    {
+        IsDeleteConfirmationVisible = false;
+        PendingDeleteArticle = null;
+        StatusMessage = "已取消删除。";
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        ArticleCardViewModel? article = PendingDeleteArticle;
+        if (article is null)
+        {
+            return;
+        }
+
+        await ExecuteBusyAsync(async () =>
+        {
+            await articleRepository.DeleteAsync(article.ArticleId).ConfigureAwait(false);
+            IsDeleteConfirmationVisible = false;
+            PendingDeleteArticle = null;
+            await RefreshTagOptionsAsync().ConfigureAwait(false);
+            await SearchInternalAsync().ConfigureAwait(false);
+            StatusMessage = $"已删除《{article.Title}》。";
+        }).ConfigureAwait(false);
     }
 
     private async Task ExecuteBusyAsync(Func<Task> operation)
@@ -298,6 +418,15 @@ public sealed class ArticleLibraryViewModel : PageViewModel
         => string.Equals(value, AllTagsOption, StringComparison.Ordinal)
             ? null
             : NormalizeQuery(value);
+
+    private IReadOnlyList<IArticleRecord> SortArticles(IReadOnlyList<IArticleRecord> results)
+        => SelectedSortOption switch
+        {
+            SortByCreatedAscOption => results.OrderBy(article => article.CreatedAt).ToArray(),
+            SortByLengthDescOption => results.OrderByDescending(article => article.RawText.Length).ToArray(),
+            SortByLengthAscOption => results.OrderBy(article => article.RawText.Length).ToArray(),
+            _ => results.OrderByDescending(article => article.CreatedAt).ToArray(),
+        };
 
     private static string BuildPreview(string rawText)
     {
